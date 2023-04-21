@@ -280,8 +280,8 @@ class CompAnimalDiseaseUpdateMRS:
                 healthy_dist = np.linalg.norm(np_abundance[idx] - np_healthy_abundance)            
                 self.df_mrs.loc[self.li_new_sample_name[idx], 'HealthyDistance'] = healthy_dist
             
-            # Calculate the TotalScore
-            self.df_mrs['TotalScore'] = self.df_mrs['Dysbiosis'] + self.df_mrs['HealthyDistance'] - self.df_mrs['Diversity']
+            # Calculate the TotalRiskScore
+            self.df_mrs['TotalRiskScore'] = self.df_mrs['Dysbiosis'] + self.df_mrs['HealthyDistance'] - self.df_mrs['Diversity']
  
         except Exception as e:
             print(str(e))
