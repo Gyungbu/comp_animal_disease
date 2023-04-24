@@ -37,13 +37,15 @@ class CompAnimalDiseaseUpdateMRS:
         Parameters:
         path_exp (str): Path of Merged Proportion file to analyze.  
         """   
-        self.species = sys.argv[1].split('_')[-2]   # dog or cat
+        
+        self.path_exp = path_exp
+        self.species = path_exp.split('_')[-2]   # dog or cat
+        
         if self.species in ['dog', 'cat']:  
             curdir = os.path.abspath('')
             self.path_beta = f"{curdir}/input/phenotype_microbiome_{self.species}.xlsx"
             self.path_healthy = f"{curdir}/input/healthy_profile_{self.species}.xlsx"
             self.path_db = f"{curdir}/input/db_abundance_{self.species}.xlsx"
-            self.path_exp = sys.argv[1]
             self.path_mrs_db = f"{curdir}/input/comp_mrs_{self.species}.xlsx"
             self.path_hist = f"{curdir}/output/mrs_hist_{self.species}.png"
 

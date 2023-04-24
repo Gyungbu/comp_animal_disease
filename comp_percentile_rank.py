@@ -25,13 +25,14 @@ class CompAnimalDisease:
         Parameters:
         path_exp (str): Path of Merged Proportion file to analyze.
         """        
-        self.species = sys.argv[1].split('_')[-2]   # dog or cat
+        self.path_exp = path_exp
+        self.species = path_exp.split('_')[-2]   # dog or cat
+        
         if self.species in ['dog', 'cat']:         
             curdir = os.path.abspath('')
             self.path_beta = f"{curdir}/input/phenotype_microbiome_{self.species}.xlsx"
             self.path_healthy = f"{curdir}/input/healthy_profile_{self.species}.xlsx"
-            self.path_db = f"{curdir}/input/db_abundance_{self.species}.xlsx"
-            self.path_exp = sys.argv[1]
+            self.path_db = f"{curdir}/input/db_abundance_{self.species}.xlsx"            
             self.path_mrs_db = f"{curdir}/input/comp_mrs_{self.species}.xlsx"
             self.path_comp_percentile_rank_output = f"{curdir}/output/comp_percentile_rank_{self.species}.xlsx"
 
@@ -270,7 +271,6 @@ class CompAnimalDisease:
             
             # Calculate the TotalRiskScore
             self.df_mrs['TotalRiskScore'] = self.df_mrs['Dysbiosis'] + self.df_mrs['HealthyDistance'] - self.df_mrs['Diversity']
- 
         except Exception as e:
             print(str(e))
             rv = False
@@ -327,10 +327,13 @@ class CompAnimalDisease:
             
             for corr_var in li_corr_var:           
                 for idx in range(len(self.li_phenotype)):
-                    res = pearsonr(list(self.df_mrs[self.li_phenotype[idx]]), list(self.df_mrs[corr_var]))
+                    res = pearsonr(list(self.df_percentile_rank[self.li_phenotype[idx]]), list(self.df_percentile_rank[corr_var]))
                     print(corr_var, '--', self.li_phenotype[idx], res)
-
-
+            '''
+            for idx in range(len(self.li_phenotype)):
+                res = pearsonr(list(self.df_percentile_rank[self.li_phenotype[idx]]), list((self.df_percentile_rank['Dysbiosis'] + self.df_percentile_rank['HealthyDistance'])/2))
+                print('TotalRiskScore', '--', self.li_phenotype[idx], res)
+            '''        
         except Exception as e:
             print(str(e))
             rv = False
@@ -353,5 +356,5 @@ if __name__ == '__main__':
     companimal.CalculateDysbiosis()    
     companimal.CalculateHealthyDistance()
     companimal.CalculatePercentileRank()
-    companimal.CalculatePearsonCorrelation()
+    #companimal.CalculatePearsonCorrelation()
     
