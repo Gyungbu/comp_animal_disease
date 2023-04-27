@@ -300,7 +300,7 @@ class CompAnimalDisease:
             np_healthy_abundance = clr(np_healthy_abundance)
             
             # Calculate healthy distance for each new sample
-            for idx in range(len(np_abundance)):          
+            for idx in range(len(self.li_new_sample_name)):          
                 healthy_dist = np.linalg.norm(np_abundance[idx] - np_healthy_abundance)            
                 self.df_mrs.loc[self.li_new_sample_name[idx], 'HealthyDistance'] = healthy_dist
             
