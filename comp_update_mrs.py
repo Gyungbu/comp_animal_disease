@@ -69,7 +69,14 @@ class CompAnimalDiseaseUpdateMRS:
     # df_beta : Data frame of of Phenotype-Microbiome information
     # df_db : Data frame of accumulated Experimental result information - Abundance
     # df_exp : Data frame of Experimental result information - Abundance    
-    def ReadDB(self):        
+    def ReadDB(self):   
+        """
+        Read the data.
+
+        Returns:
+        A tuple (success, message), where success is a boolean indicating whether the operation was successful,
+        and message is a string containing a success or error message.
+        """          
         rv = True
         rvmsg = "Success"
         
@@ -122,6 +129,13 @@ class CompAnimalDiseaseUpdateMRS:
 
 
     def SubtractAbundance(self): 
+        """
+        Subtract the abundance for each microbiome in the df_exp.
+
+        Returns:
+        A tuple (success, message), where success is a boolean indicating whether the operation was successful,
+        and message is a string containing a success or error message.
+        """         
         rv = True
         rvmsg = "Success"
         
@@ -164,6 +178,13 @@ class CompAnimalDiseaseUpdateMRS:
         return rv, rvmsg
 
     def CalculateMRS(self): 
+        """
+        Calculate the MRS (Microbiome Risk Score).
+
+        Returns:
+        A tuple (success, message), where success is a boolean indicating whether the operation was successful,
+        and message is a string containing a success or error message.
+        """        
         rv = True
         rvmsg = "Success"
         
@@ -181,8 +202,8 @@ class CompAnimalDiseaseUpdateMRS:
                         condition_micro = (self.df_exp.taxa == row_beta['microbiome'])
 
                         if (len(self.df_exp[condition_micro]) > 0):      
-                            x_i = self.df_exp[condition_micro][self.li_new_sample_name[i]].values[0] 
-                            mrs += row_beta['beta'] * math.log10(100*x_i + 1)  
+                            abundance = self.df_exp[condition_micro][self.li_new_sample_name[i]].values[0] 
+                            mrs += row_beta['beta'] * math.log10(100*abundance + 1)  
 
                     mrs /= len(self.df_beta[condition_phen])       
                     self.df_mrs.loc[self.li_new_sample_name[i], self.li_phenotype[j]] = mrs
@@ -197,6 +218,13 @@ class CompAnimalDiseaseUpdateMRS:
         return rv, rvmsg       
 
     def CalculateDysbiosis(self): 
+        """
+        Calculate the Dysbiosis.
+
+        Returns:
+        A tuple (success, message), where success is a boolean indicating whether the operation was successful,
+        and message is a string containing a success or error message.
+        """          
         rv = True
         rvmsg = "Success"
         
@@ -215,15 +243,15 @@ class CompAnimalDiseaseUpdateMRS:
                         condition_micro = (self.df_exp.taxa == self.li_microbiome[j])
 
                         if (len(self.df_exp[condition_micro]) > 0):      
-                            x_i = self.df_exp[condition_micro][self.li_new_sample_name[i]].values[0] 
-                            dysbiosis += math.log10(100*x_i + 1)           
+                            abundance = self.df_exp[condition_micro][self.li_new_sample_name[i]].values[0] 
+                            dysbiosis += math.log10(100*abundance + 1)           
                             
                     elif (len(self.df_beta[condition_harmful]) == 0) & (len(self.df_beta[condition_beneficial]) >= 1):                   
                         condition_micro = (self.df_exp.taxa == self.li_microbiome[j])
 
                         if (len(self.df_exp[condition_micro]) > 0):      
-                            x_i = self.df_exp[condition_micro][self.li_new_sample_name[i]].values[0]  
-                            dysbiosis -= math.log10(100*x_i + 1)       
+                            abundance = self.df_exp[condition_micro][self.li_new_sample_name[i]].values[0]  
+                            dysbiosis -= math.log10(100*abundance + 1)       
                             
                 self.df_mrs.loc[self.li_new_sample_name[i], 'Dysbiosis'] = dysbiosis
                  
@@ -237,6 +265,13 @@ class CompAnimalDiseaseUpdateMRS:
         return rv, rvmsg          
 
     def CalculateHealthyDistance(self): 
+        """
+        Calculate the Healthy Distance.
+
+        Returns:
+        A tuple (success, message), where success is a boolean indicating whether the operation was successful,
+        and message is a string containing a success or error message.
+        """           
         rv = True
         rvmsg = "Success"
         
@@ -295,6 +330,13 @@ class CompAnimalDiseaseUpdateMRS:
         return rv, rvmsg    
     
     def UpdateMRS(self): 
+        """
+        Save the MRS data as an Excel file & Save the histogram as an png file.
+
+        Returns:
+        A tuple (success, message), where success is a boolean indicating whether the operation was successful,
+        and message is a string containing a success or error message.
+        """         
         rv = True
         rvmsg = "Success"
         
