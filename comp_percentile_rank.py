@@ -32,15 +32,12 @@ class CompAnimalDisease:
             curdir = os.path.abspath('')
             self.path_beta = f"{curdir}/input/phenotype_microbiome_{self.species}.xlsx"
             self.path_healthy = f"{curdir}/input/healthy_profile_{self.species}.xlsx"
-            self.path_db = f"{curdir}/input/db_abundance_{self.species}.xlsx"            
             self.path_mrs_db = f"{curdir}/input/comp_mrs_{self.species}.xlsx"
             self.path_comp_percentile_rank_output = f"{curdir}/output/comp_percentile_rank_{self.species}.xlsx"
 
             self.df_beta = None
-            self.df_db = None
             self.df_exp = None
             self.df_mrs = None
-            self.df_db_rev = None       
             self.df_mrs_db = None        
             self.df_percentile_rank = None
             self.df_exp_healthy = None
@@ -73,7 +70,6 @@ class CompAnimalDisease:
         try:       
             self.df_beta = pd.read_excel(self.path_beta)
             self.df_healthy = pd.read_excel(self.path_healthy)
-            self.df_db = pd.read_excel(self.path_db)
             self.df_exp = pd.read_csv(self.path_exp)
             self.df_mrs_db = pd.read_excel(self.path_mrs_db, index_col=0) 
 
@@ -88,33 +84,6 @@ class CompAnimalDisease:
             sys.exit()            
         return rv, rvmsg
 
-    def InsertDataDB(self): 
-        """
-        Inserts data into the database by merging the data frames df_db and df_exp.
-
-        Returns:
-        A tuple (success, message), where success is a boolean indicating whether the operation was successful,
-        and message is a string containing a success or error message.
-        """        
-        rv = True
-        rvmsg = "Success"
-        
-        try: 
-            self.df_db = pd.merge(self.df_db, self.df_exp, how='outer',on='taxa', suffixes=['', '_right']) 
-            self.df_db = self.df_db.fillna(0)
-            self.df_db = self.df_db.filter(regex='^(?!.*_right).*') # Eliminate duplicate columns
-                    
-            self.df_db_rev = self.df_db.set_index(keys=['taxa'], inplace=False, drop=True)    
-            self.df_db_rev.to_excel(self.path_db)
-
-        except Exception as e:
-            print(str(e))
-            rv = False
-            rvmsg = str(e)
-            sys.exit()
-        return rv, rvmsg
-
-
     def SubtractAbundance(self): 
         """
         Subtract the abundance for each microbiome in the df_exp.
@@ -128,10 +97,9 @@ class CompAnimalDisease:
         
         try: 
             # Delete the diversity, observed rows
-            if (list(self.df_exp['taxa'][0:2]) == ['diversity', 'observed']) & (list(self.df_db['taxa'][0:2]) == ['diversity', 'observed']):
+            if (list(self.df_exp['taxa'][0:2]) == ['diversity', 'observed']):
                 self.li_diversity = list(self.df_exp.iloc[0,1:]) # li_diversity : Alpha-Diversity list 
                 self.df_exp = self.df_exp.iloc[2:,:]
-                self.df_db = self.df_db.iloc[2:,:]
                 self.df_exp_healthy = self.df_exp
             
             # li_new_sample_name : Sample name list 
@@ -395,7 +363,6 @@ if __name__ == '__main__':
     
     companimal = CompAnimalDisease(path_exp)
     companimal.ReadDB()
-    companimal.InsertDataDB()
     companimal.SubtractAbundance()
     companimal.CalculateMRS()    
     companimal.CalculateDysbiosis()    
