@@ -60,6 +60,7 @@ class CompAnimalDiseaseUpdateMRS:
             self.li_new_sample_name = None
             self.li_phenotype = None
             self.li_microbiome = None            
+            
         else:
             print("The species should be dog or cat")
             print("Please check the path_exp")
@@ -85,15 +86,18 @@ class CompAnimalDiseaseUpdateMRS:
             self.df_healthy = pd.read_excel(self.path_healthy)
             self.df_db = pd.read_excel(self.path_db)
             self.df_exp = pd.read_csv(self.path_exp)
+            self.df_exp_healthy = pd.read_csv(self.path_exp)
     
             self.df_beta.rename(columns = {"Disease": "phenotype", "NCBI name": "ncbi_name", "MIrROR name": "microbiome", "Health sign": "beta", "subtract": "microbiome_subtract"}, inplace=True)
             self.df_beta = self.df_beta[["phenotype", "ncbi_name", "microbiome", "beta", "microbiome_subtract"]]
             self.df_beta['beta'] = self.df_beta['beta'].replace({'유해': 1, '유익': -1})    
+        
         except Exception as e:
             print(str(e))
             rv = False
             rvmsg = str(e)
             sys.exit()    
+            
         return rv, rvmsg
 
 
@@ -125,6 +129,7 @@ class CompAnimalDiseaseUpdateMRS:
             rv = False
             rvmsg = str(e)
             sys.exit()
+            
         return rv, rvmsg
 
 
@@ -145,7 +150,7 @@ class CompAnimalDiseaseUpdateMRS:
                 self.li_diversity = list(self.df_exp.iloc[0,1:]) # li_diversity : Alpha-Diversity list 
                 self.df_exp = self.df_exp.iloc[2:,:]
                 self.df_db = self.df_db.iloc[2:,:]
-                self.df_exp_healthy = self.df_exp
+                self.df_exp_healthy = self.df_exp_healthy.iloc[2:,:]
 
             # li_new_sample_name : Sample name list 
             # li_phenotype : Phenotype list 
@@ -304,7 +309,7 @@ class CompAnimalDiseaseUpdateMRS:
                 np_abundance = np.concatenate((np_abundance,np_abundance_temp),axis=0)
 
             np_abundance = np_abundance.transpose()
-            
+
             # Apply multiplicative replacement and CLR transformations
             np_abundance = multiplicative_replacement(np_abundance)
             np_abundance = clr(np_abundance)   
@@ -313,7 +318,7 @@ class CompAnimalDiseaseUpdateMRS:
             np_healthy_abundance = clr(np_healthy_abundance)
             
             # Calculate healthy distance for each new sample
-            for idx in range(len(np_abundance)):          
+            for idx in range(len(self.li_new_sample_name)):        
                 healthy_dist = np.linalg.norm(np_abundance[idx] - np_healthy_abundance)            
                 self.df_mrs.loc[self.li_new_sample_name[idx], 'HealthyDistance'] = healthy_dist
             
@@ -356,7 +361,6 @@ class CompAnimalDiseaseUpdateMRS:
             sys.exit()
     
         return rv, rvmsg       
-    
     
 ####################################
 # main

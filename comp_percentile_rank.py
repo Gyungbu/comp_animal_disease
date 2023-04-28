@@ -46,6 +46,7 @@ class CompAnimalDisease:
             self.li_new_sample_name = None
             self.li_phenotype = None
             self.li_microbiome = None
+            
         else:
             print("The species should be dog or cat")
             print("Please check the path_exp")
@@ -54,7 +55,6 @@ class CompAnimalDisease:
     
     # Load the DB file
     # df_beta : Data frame of of Phenotype-Microbiome information
-    # df_db : Data frame of accumulated Experimental result information - Abundance
     # df_exp : Data frame of Experimental result information - Abundance    
     def ReadDB(self):        
         """
@@ -72,6 +72,7 @@ class CompAnimalDisease:
             self.df_healthy = pd.read_excel(self.path_healthy)
             self.df_exp = pd.read_csv(self.path_exp)
             self.df_mrs_db = pd.read_excel(self.path_mrs_db, index_col=0) 
+            self.df_exp_healthy = pd.read_csv(self.path_exp)
 
             self.df_beta.rename(columns = {"Disease": "phenotype", "NCBI name": "ncbi_name", "MIrROR name": "microbiome", "Health sign": "beta", "subtract": "microbiome_subtract"}, inplace=True)
             self.df_beta = self.df_beta[["phenotype", "ncbi_name", "microbiome", "beta", "microbiome_subtract"]]
@@ -82,6 +83,7 @@ class CompAnimalDisease:
             rv = False
             rvmsg = str(e)
             sys.exit()            
+            
         return rv, rvmsg
 
     def SubtractAbundance(self): 
@@ -100,7 +102,7 @@ class CompAnimalDisease:
             if (list(self.df_exp['taxa'][0:2]) == ['diversity', 'observed']):
                 self.li_diversity = list(self.df_exp.iloc[0,1:]) # li_diversity : Alpha-Diversity list 
                 self.df_exp = self.df_exp.iloc[2:,:]
-                self.df_exp_healthy = self.df_exp
+                self.df_exp_healthy = self.df_exp_healthy.iloc[2:,:]
             
             # li_new_sample_name : Sample name list 
             # li_phenotype : Phenotype list 
@@ -274,6 +276,7 @@ class CompAnimalDisease:
             
             # Calculate the TotalRiskScore
             self.df_mrs['TotalRiskScore'] = self.df_mrs['Dysbiosis'] + self.df_mrs['HealthyDistance'] - self.df_mrs['Diversity']
+            
         except Exception as e:
             print(str(e))
             rv = False
