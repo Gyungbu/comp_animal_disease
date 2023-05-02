@@ -10,6 +10,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 from skbio.stats.composition import multiplicative_replacement, clr
 
+# Check if the script is being called with the correct arguments
+if len(sys.argv) < 2:
+    print("Usage: python Script.py <path_exp>")
+    print("Example: python comp_update_mrs.py \"/home/kbkim/comp_animal_disease/input/mirror_output_dog_1340.csv\"")
+    print("Example: python comp_update_mrs.py \"/home/kbkim/comp_animal_disease/input/mirror_output_cat_1409.csv\"")
+    sys.exit(1)
+    
 # path_exp : Path of Merged Proportion file to analyze
 path_exp = sys.argv[1]
 
