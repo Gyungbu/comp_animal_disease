@@ -9,7 +9,7 @@ import sys
 import math
 import matplotlib.pyplot as plt
 import numpy as np
-#from skbio.stats.composition import multiplicative_replacement, clr
+from skbio.stats.composition import multiplicative_replacement, clr
 
 # path_exp : Path of Merged Proportion file to analyze
 #path_exp = sys.argv[1] 
