@@ -37,7 +37,7 @@ class CompAnimalDisease:
             print("Please check the path_exp")
 
 
-        curdir = os.path.abspath('')
+        curdir = os.path.dirname(os.path.abspath(__file__))
         self.path_beta = f"{curdir}/input/phenotype_microbiome_{self.species}.xlsx"
         self.path_healthy = f"{curdir}/input/healthy_profile_{self.species}.xlsx"
         self.path_db = f"{curdir}/input/db_abundance_{self.species}.xlsx"
