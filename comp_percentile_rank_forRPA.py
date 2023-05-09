@@ -2,7 +2,7 @@
 ### ex) python comp_percentile_rank.py "/home/kbkim/comp_animal_disease/input/mirror_output_dog_1340.csv" 
 ### ex) python comp_percentile_rank.py "/home/kbkim/comp_animal_disease/input/mirror_output_cat_1409.csv"
 
-import os
+import os, datetime
 import pandas as pd
 from scipy.stats import percentileofscore, pearsonr
 import sys
@@ -13,6 +13,29 @@ import numpy as np
 
 # path_exp : Path of Merged Proportion file to analyze
 #path_exp = sys.argv[1] 
+
+#-------------------------------------------------------
+# 공통 함수
+#-------------------------------------------------------
+def WriteLog(functionname, msg, type='INFO', fplog=None):
+    #strmsg = "[%s][%s][%s] %s\n" % (datetime.datetime.now(), type, functionname, msg)
+    #if( DEBUGMODE ): 
+    #    print(strmsg)
+    #else:
+    #    if( fplog != None ):
+    #        fplog.write(strmsg)
+    
+    head = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    writestr = f"[{head}][{functionname}] {msg}\n"
+    #if( DEBUGMODE ):
+    if( True ):
+        #print(message)
+        writestr = f"[{functionname}] {msg}\n"
+        print(writestr)
+        
+    if( fplog != None ):
+        fplog.write(writestr)
+        fplog.flush()
 
 ###################################
 # MainClass
@@ -69,6 +92,9 @@ class CompAnimalDisease:
     # df_db : Data frame of accumulated Experimental result information - Abundance
     # df_exp : Data frame of Experimental result information - Abundance    
     def ReadDB(self):
+        myNAME = self.__class__.__name__+"::"+sys._getframe().f_code.co_name
+        WriteLog(myNAME, "In", type='INFO', fplog=self.__fplog)
+        
         rv = True
         rvmsg = "Success"
         
@@ -120,6 +146,9 @@ class CompAnimalDisease:
     '''
 
     def SubtractAbundance(self): 
+        myNAME = self.__class__.__name__+"::"+sys._getframe().f_code.co_name
+        WriteLog(myNAME, "In", type='INFO', fplog=self.__fplog)
+        
         rv = True
         rvmsg = "Success"
         
@@ -165,6 +194,9 @@ class CompAnimalDisease:
         return rv, rvmsg
 
     def CalculateMRS(self): 
+        myNAME = self.__class__.__name__+"::"+sys._getframe().f_code.co_name
+        WriteLog(myNAME, "In", type='INFO', fplog=self.__fplog)
+        
         rv = True
         rvmsg = "Success"
         
@@ -197,6 +229,9 @@ class CompAnimalDisease:
         return rv, rvmsg
 
     def CalculateDysbiosis(self): 
+        myNAME = self.__class__.__name__+"::"+sys._getframe().f_code.co_name
+        WriteLog(myNAME, "In", type='INFO', fplog=self.__fplog)
+        
         rv = True
         rvmsg = "Success"
         
@@ -236,6 +271,9 @@ class CompAnimalDisease:
         return rv, rvmsg
      
     def CalculateHealthyDistance(self): 
+        myNAME = self.__class__.__name__+"::"+sys._getframe().f_code.co_name
+        WriteLog(myNAME, "In", type='INFO', fplog=self.__fplog)
+        
         rv = True
         rvmsg = "Success"
         
@@ -293,7 +331,10 @@ class CompAnimalDisease:
     
         return rv, rvmsg          
     
-    def CalculatePercentileRank(self): 
+    def CalculatePercentileRank(self):
+        myNAME = self.__class__.__name__+"::"+sys._getframe().f_code.co_name
+        WriteLog(myNAME, "In", type='INFO', fplog=self.__fplog)
+         
         rv = True
         rvmsg = "Success"
         
@@ -332,6 +373,9 @@ class CompAnimalDisease:
         return rv, rvmsg
 
     def CalculatePearsonCorrelation(self): 
+        myNAME = self.__class__.__name__+"::"+sys._getframe().f_code.co_name
+        WriteLog(myNAME, "In", type='INFO', fplog=self.__fplog)
+        
         rv = True
         rvmsg = "Success"
         
