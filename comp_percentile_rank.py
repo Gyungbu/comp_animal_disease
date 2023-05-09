@@ -244,17 +244,20 @@ class CompAnimalDisease:
             self.df_mrs['Diversity'] = self.li_diversity
 
             np_abundance = np.array([], dtype=np.float64).reshape(0,len(self.li_new_sample_name))
+            np_abundance_others = np.ones((1,len(self.li_new_sample_name)), dtype=float)
+            
             # Subtract the abundance - df_exp_healthy
             for idx_healthy, row_healthy in self.df_healthy.iterrows(): 
                 li_micro_sub = []
                 li_micro = row_healthy['microbiome'].split('\n')
                 np_abundance_temp = np.zeros((1,len(self.li_new_sample_name)), dtype=float)
-                
+                   
                 for micro in li_micro:
                     condition_append = (self.df_exp_healthy.taxa == micro)
 
                     if len(self.df_exp_healthy[condition_append]) > 0:
                         np_abundance_temp += self.df_exp_healthy[condition_append].to_numpy()[:,1:].astype(np.float64)
+                        np_abundance_others -= self.df_exp_healthy[condition_append].to_numpy()[:,1:].astype(np.float64)
                 
                 if pd.isna(row_healthy['microbiome_subtract']) is False:
                     li_micro_sub = row_healthy['microbiome_subtract'].split('\n')
@@ -264,16 +267,20 @@ class CompAnimalDisease:
             
                         if len(self.df_exp_healthy[condition_sub]) > 0:
                             np_abundance_temp -= self.df_exp_healthy[condition_sub].to_numpy()[:,1:].astype(np.float64)
+                            np_abundance_others += self.df_exp_healthy[condition_sub].to_numpy()[:,1:].astype(np.float64)
                             
                 np_abundance = np.concatenate((np_abundance,np_abundance_temp),axis=0)
-
-            np_abundance = np_abundance.transpose()
             
+            np_abundance = np.concatenate((np_abundance,np_abundance_others),axis=0)
+            np_abundance = np_abundance.transpose()
+
             # Apply multiplicative replacement and CLR transformations
             np_abundance = multiplicative_replacement(np_abundance)
             np_abundance = clr(np_abundance)   
 
             np_healthy_abundance = self.df_healthy['RA'].to_numpy()
+            np_healthy_abundance = np.append(np_healthy_abundance, 100-np_healthy_abundance.sum())
+
             np_healthy_abundance = clr(np_healthy_abundance)
             
             # Calculate healthy distance for each new sample
