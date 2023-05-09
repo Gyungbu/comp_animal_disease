@@ -41,7 +41,7 @@ def WriteLog(functionname, msg, type='INFO', fplog=None):
 # MainClass
 ###################################
 class CompAnimalDisease:
-    def __init__(self, path_exp):
+    def __init__(self, path_exp, fplog=None):
         """
         Initializes a CompAnimalDisease object.
 
@@ -50,6 +50,7 @@ class CompAnimalDisease:
         """
         self.path_exp = path_exp
         self.species = None
+        self.__fplog=fplog
         if( os.path.basename(self.path_exp).startswith('PD') ):
             self.species = 'dog'
         elif( os.path.basename(self.path_exp).startswith('PC') ):
