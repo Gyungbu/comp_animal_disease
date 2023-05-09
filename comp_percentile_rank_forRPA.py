@@ -71,13 +71,11 @@ class CompAnimalDisease:
         ##ReadDB  에서 읽어들인데이타
         self.df_beta = None
         self.df_healthy = None
-        self.df_db = None
         self.df_exp = None
         self.df_mrs_db = None
         self.df_exp_healthy = None
         
         self.df_mrs = None
-        self.df_db_rev = None
         self.df_percentile_rank = None
         
         self.li_diversity = None
@@ -89,7 +87,6 @@ class CompAnimalDisease:
     
     # Load the DB file
     # df_beta : Data frame of of Phenotype-Microbiome information
-    # df_db : Data frame of accumulated Experimental result information - Abundance
     # df_exp : Data frame of Experimental result information - Abundance    
     def ReadDB(self):
         myNAME = self.__class__.__name__+"::"+sys._getframe().f_code.co_name
