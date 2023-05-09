@@ -170,7 +170,7 @@ class CompAnimalDisease:
                             mrs += row_beta['beta'] * math.log10(100*abundance + 1)  
 
                     mrs /= len(self.df_beta[condition_phen])       
-                    self.df_mrs.loc[self.li_new_sample_name[i], self.li_phenotype[j]] = mrs
+                    self.df_mrs.loc[self.li_new_sample_name[i], self.li_phenotype[j]] = -mrs
 
         except Exception as e:
             print(str(e))
@@ -217,7 +217,7 @@ class CompAnimalDisease:
                             abundance = self.df_exp[condition_micro][self.li_new_sample_name[i]].values[0]  
                             dysbiosis -= math.log10(100*abundance + 1)       
                             
-                self.df_mrs.loc[self.li_new_sample_name[i], 'Dysbiosis'] = dysbiosis
+                self.df_mrs.loc[self.li_new_sample_name[i], 'Dysbiosis'] = -dysbiosis
                  
         except Exception as e:
             print(str(e))
@@ -286,10 +286,10 @@ class CompAnimalDisease:
             # Calculate healthy distance for each new sample
             for idx in range(len(self.li_new_sample_name)):          
                 healthy_dist = np.linalg.norm(np_abundance[idx] - np_healthy_abundance)            
-                self.df_mrs.loc[self.li_new_sample_name[idx], 'HealthyDistance'] = healthy_dist
+                self.df_mrs.loc[self.li_new_sample_name[idx], 'HealthyDistance'] = -healthy_dist
             
-            # Calculate the TotalRiskScore
-            self.df_mrs['TotalRiskScore'] = self.df_mrs['Dysbiosis'] + self.df_mrs['HealthyDistance'] - self.df_mrs['Diversity']
+            # Calculate the TotalScore
+            self.df_mrs['TotalScore'] = self.df_mrs['Dysbiosis'] + self.df_mrs['HealthyDistance'] + self.df_mrs['Diversity']
             
         except Exception as e:
             print(str(e))
@@ -312,8 +312,8 @@ class CompAnimalDisease:
         rvmsg = "Success"
         
         try:      
-            # Append the Dysbiosis, HealthyDistance, Diversity, TotalRiskScore to phenotype list
-            self.li_phenotype += ['Dysbiosis', 'HealthyDistance', 'Diversity', 'TotalRiskScore']
+            # Append the Dysbiosis, HealthyDistance, Diversity, TotalScore to phenotype list
+            self.li_phenotype += ['Dysbiosis', 'HealthyDistance', 'Diversity', 'TotalScore']
 
             # Create an empty data frame with the same index and columns as the df_mrs data frame
             self.df_percentile_rank = pd.DataFrame(index = self.li_new_sample_name, columns = self.li_phenotype)
@@ -357,7 +357,7 @@ class CompAnimalDisease:
         rvmsg = "Success"
         
         try:     
-            li_corr_var = ['Dysbiosis', 'HealthyDistance', 'Diversity', 'TotalRiskScore']
+            li_corr_var = ['Dysbiosis', 'HealthyDistance', 'Diversity', 'TotalScore']
             
             for corr_var in li_corr_var:           
                 for idx in range(len(self.li_phenotype)):

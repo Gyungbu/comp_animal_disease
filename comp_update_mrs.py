@@ -1,6 +1,6 @@
 ##<Usage: python Script.py {path_exp}>
-### ex) python comp_update_mrs.py "/home/kbkim/comp_animal_disease/input/mirror_output_dog_1340.csv"
-### ex) python comp_update_mrs.py "/home/kbkim/comp_animal_disease/input/mirror_output_cat_1409.csv"
+### ex) python comp_update_mrs.py "/home/kbkim/comp_animal_disease/input/PDmirror_output_dog_1340.csv"
+### ex) python comp_update_mrs.py "/home/kbkim/comp_animal_disease/input/PCmirror_output_cat_1409.csv"
 
 import os
 import pandas as pd
@@ -218,7 +218,7 @@ class CompAnimalDiseaseUpdateMRS:
                             mrs += row_beta['beta'] * math.log10(100*abundance + 1)  
 
                     mrs /= len(self.df_beta[condition_phen])       
-                    self.df_mrs.loc[self.li_new_sample_name[i], self.li_phenotype[j]] = mrs
+                    self.df_mrs.loc[self.li_new_sample_name[i], self.li_phenotype[j]] = -mrs
 
         except Exception as e:
             print(str(e))
@@ -265,7 +265,7 @@ class CompAnimalDiseaseUpdateMRS:
                             abundance = self.df_exp[condition_micro][self.li_new_sample_name[i]].values[0]  
                             dysbiosis -= math.log10(100*abundance + 1)       
                             
-                self.df_mrs.loc[self.li_new_sample_name[i], 'Dysbiosis'] = dysbiosis
+                self.df_mrs.loc[self.li_new_sample_name[i], 'Dysbiosis'] = -dysbiosis
                  
         except Exception as e:
             print(str(e))
@@ -334,10 +334,10 @@ class CompAnimalDiseaseUpdateMRS:
             # Calculate healthy distance for each new sample
             for idx in range(len(self.li_new_sample_name)):          
                 healthy_dist = np.linalg.norm(np_abundance[idx] - np_healthy_abundance)            
-                self.df_mrs.loc[self.li_new_sample_name[idx], 'HealthyDistance'] = healthy_dist
+                self.df_mrs.loc[self.li_new_sample_name[idx], 'HealthyDistance'] = -healthy_dist
             
             # Calculate the TotalRiskScore
-            self.df_mrs['TotalRiskScore'] = self.df_mrs['Dysbiosis'] + self.df_mrs['HealthyDistance'] - self.df_mrs['Diversity']
+            self.df_mrs['TotalScore'] = self.df_mrs['Dysbiosis'] + self.df_mrs['HealthyDistance'] + self.df_mrs['Diversity']
             
         except Exception as e:
             print(str(e))
