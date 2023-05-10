@@ -41,7 +41,7 @@ def WriteLog(functionname, msg, type='INFO', fplog=None):
 # MainClass
 ###################################
 class CompAnimalDisease:
-    def __init__(self, path_exp, fplog=None):
+    def __init__(self, path_exp, outdir=None, fplog=None):
         """
         Initializes a CompAnimalDisease object.
 
@@ -65,7 +65,15 @@ class CompAnimalDisease:
         self.path_beta = f"{curdir}/input/phenotype_microbiome_{self.species}.xlsx"
         self.path_healthy = f"{curdir}/input/healthy_profile_{self.species}.xlsx"
         self.path_mrs_db = f"{curdir}/input/comp_mrs_{self.species}.xlsx"
-        self.path_comp_percentile_rank_output = f"{curdir}/output/comp_percentile_rank_{self.species}.csv"
+        
+        
+        ###output
+        if( outdir is not None ):
+            self.outdir = outdir
+        else:
+            self.outdir = f"{curdir}/output"
+
+        self.path_comp_percentile_rank_output = f"{self.outdir}/{os.path.basename(self.path_exp)}.csv"
 
 
         ##ReadDB  에서 읽어들인데이타
