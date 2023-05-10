@@ -73,7 +73,7 @@ class CompAnimalDisease:
         else:
             self.outdir = f"{curdir}/output"
 
-        self.path_comp_percentile_rank_output = f"{self.outdir}/{os.path.basename(self.path_exp)}.csv"
+        self.path_comp_percentile_rank_output = f"{self.outdir}/{os.path.basename(self.path_exp).replace('_report.txt','')}.csv"
 
 
         ##ReadDB  에서 읽어들인데이타
