@@ -406,16 +406,13 @@ class CompAnimalDisease:
         rv = True
         rvmsg = "Success"
         
-        try:      
-            # Create an empty data frame with the same index and columns as the df_mrs data frame
-            self.df_eval = pd.DataFrame(index = self.li_new_sample_name, columns = self.li_phenotype)
-            
+        try:                  
             # Define the conditions and corresponding values
             conditions = [
-                self.df_percentile_rank > 70,
-                (self.df_percentile_rank > 50) & (self.df_percentile_rank <= 70),
-                (self.df_percentile_rank > 30) & (self.df_percentile_rank <= 50),
-                (self.df_percentile_rank > 10) & (self.df_percentile_rank <= 30),
+                self.df_percentile_rank > 80,
+                (self.df_percentile_rank > 60) & (self.df_percentile_rank <= 80),
+                (self.df_percentile_rank > 40) & (self.df_percentile_rank <= 60),
+                (self.df_percentile_rank > 10) & (self.df_percentile_rank <= 40),
                 self.df_percentile_rank <= 10
             ]
             values = ['excellent', 'good', 'average', 'caution', 'bad']
@@ -427,7 +424,7 @@ class CompAnimalDisease:
                                 np.where(conditions[3], values[3], values[4])))),
                                 index=self.df_percentile_rank.index, columns=self.df_percentile_rank.columns)
 
-            # Save the output file - Percentile Rank of the samples
+            # Save the output file - df_eval
             self.df_eval.to_csv(self.path_comp_eval_output)
             
             print('Analysis Complete')         
@@ -446,8 +443,8 @@ class CompAnimalDisease:
 ####################################
 if __name__ == '__main__':
     
-    path_exp = 'input/PDmirror_output_dog_1340.csv'
-    #path_exp = 'input/PCmirror_output_cat_1409.csv'
+    #path_exp = 'input/PDmirror_output_dog_1340.csv'
+    path_exp = 'input/PCmirror_output_cat_1409.csv'
     
     companimal = CompAnimalDisease(path_exp)
     companimal.ReadDB()
