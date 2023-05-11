@@ -73,8 +73,11 @@ class CompAnimalDisease:
         else:
             self.outdir = f"{curdir}/output"
 
-        self.path_comp_percentile_rank_output = f"{self.outdir}/{os.path.basename(self.path_exp).replace('_report.txt','')}.csv"
-
+        #self.path_comp_percentile_rank_output = f"{self.outdir}/{os.path.basename(self.path_exp).replace('_report.txt','')}.csv"
+        #self.path_comp_eval_output = f"{self.outdir}/{os.path.basename(self.path_exp).replace('_report.txt','_eval')}.csv"
+        
+        self.path_comp_percentile_rank_output = f"{curdir}/output/comp_percentile_rank_{self.species}.csv"
+        self.path_comp_eval_output = f"{curdir}/output/comp_eval_{self.species}.csv"
 
         ##ReadDB  에서 읽어들인데이타
         self.df_beta = None
@@ -85,6 +88,7 @@ class CompAnimalDisease:
         
         self.df_mrs = None
         self.df_percentile_rank = None
+        self.df_eval = None
         
         self.li_diversity = None
         self.li_new_sample_name = None
@@ -342,7 +346,7 @@ class CompAnimalDisease:
     
     def CalculatePercentileRank(self):
         """
-        Calculate the Percentile Rank and Save the Percentile Rank data as an Excel file.
+        Calculate the Percentile Rank and Save the Percentile Rank data as an Csv file.
 
         Returns:
         A tuple (success, message), where success is a boolean indicating whether the operation was successful,
@@ -377,7 +381,7 @@ class CompAnimalDisease:
             # Save the output file - Percentile Rank of the samples
             self.df_percentile_rank.to_csv(self.path_comp_percentile_rank_output)
 
-            print('Analysis Complete')         
+            #print('Analysis Complete')         
             
         except Exception as e:
             print(str(e))
@@ -388,15 +392,62 @@ class CompAnimalDisease:
     
         return rv, rvmsg
 
+    def EvaluatePercentileRank(self):
+        """
+        Evaluate based on percentile rank value and Save the Evaluation data as an Csv file
 
+        Returns:
+        A tuple (success, message), where success is a boolean indicating whether the operation was successful,
+        and message is a string containing a success or error message.
+        """          
+        myNAME = self.__class__.__name__+"::"+sys._getframe().f_code.co_name
+        WriteLog(myNAME, "In", type='INFO', fplog=self.__fplog)
+         
+        rv = True
+        rvmsg = "Success"
+        
+        try:      
+            # Create an empty data frame with the same index and columns as the df_mrs data frame
+            self.df_eval = pd.DataFrame(index = self.li_new_sample_name, columns = self.li_phenotype)
+            
+            # Define the conditions and corresponding values
+            conditions = [
+                self.df_percentile_rank > 70,
+                (self.df_percentile_rank > 50) & (self.df_percentile_rank <= 70),
+                (self.df_percentile_rank > 30) & (self.df_percentile_rank <= 50),
+                (self.df_percentile_rank > 10) & (self.df_percentile_rank <= 30),
+                self.df_percentile_rank <= 10
+            ]
+            values = ['excellent', 'good', 'average', 'caution', 'bad']
+
+            # Apply the conditions and values using np.where()
+            self.df_eval = pd.DataFrame(np.where(conditions[0], values[0],
+                                np.where(conditions[1], values[1],
+                                np.where(conditions[2], values[2],
+                                np.where(conditions[3], values[3], values[4])))),
+                                index=self.df_percentile_rank.index, columns=self.df_percentile_rank.columns)
+
+            # Save the output file - Percentile Rank of the samples
+            self.df_eval.to_csv(self.path_comp_eval_output)
+            
+            print('Analysis Complete')         
+            
+        except Exception as e:
+            print(str(e))
+            rv = False
+            rvmsg = str(e)
+            print("Error has occurred in the EvaluatePercentileRank process")
+            sys.exit()
+    
+        return rv, rvmsg
     
 ####################################
 # main
 ####################################
 if __name__ == '__main__':
     
-    #path_exp = 'input/PDmirror_output_dog_1340.csv'
-    path_exp = 'input/PCmirror_output_cat_1409.csv'
+    path_exp = 'input/PDmirror_output_dog_1340.csv'
+    #path_exp = 'input/PCmirror_output_cat_1409.csv'
     
     companimal = CompAnimalDisease(path_exp)
     companimal.ReadDB()
@@ -405,4 +456,5 @@ if __name__ == '__main__':
     companimal.CalculateDysbiosis()    
     companimal.CalculateHealthyDistance()
     companimal.CalculatePercentileRank()
+    companimal.EvaluatePercentileRank()
     
