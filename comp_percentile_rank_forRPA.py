@@ -379,7 +379,7 @@ class CompAnimalDisease:
             self.df_percentile_rank = self.df_percentile_rank.fillna('None')
 
             # Save the output file - Percentile Rank of the samples
-            self.df_percentile_rank.to_csv(self.path_comp_percentile_rank_output)
+            self.df_percentile_rank.to_csv(self.path_comp_percentile_rank_output, encoding="utf-8-sig")
 
             #print('Analysis Complete')         
             
@@ -425,7 +425,7 @@ class CompAnimalDisease:
                                 index=self.df_percentile_rank.index, columns=self.df_percentile_rank.columns)
 
             # Save the output file - df_eval
-            self.df_eval.to_csv(self.path_comp_eval_output)
+            self.df_eval.to_csv(self.path_comp_eval_output, encoding="utf-8-sig")
             
             print('Analysis Complete')         
             
