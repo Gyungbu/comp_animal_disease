@@ -93,7 +93,6 @@ class CompAnimalDiseaseUpdateMRS:
             self.df_healthy = pd.read_excel(self.path_healthy)
             self.df_db = pd.read_excel(self.path_db)
             self.df_exp = pd.read_csv(self.path_exp)
-            self.df_exp_healthy = pd.read_csv(self.path_exp)
     
             self.df_beta.rename(columns = {"Disease": "phenotype", "NCBI name": "ncbi_name", "MIrROR name": "microbiome", "Health sign": "beta", "subtract": "microbiome_subtract"}, inplace=True)
             self.df_beta = self.df_beta[["phenotype", "ncbi_name", "microbiome", "beta", "microbiome_subtract"]]
@@ -126,11 +125,14 @@ class CompAnimalDiseaseUpdateMRS:
             self.df_db = self.df_db.filter(regex='^(?!.*_right).*') # Eliminate duplicate columns
 
             # Update the data - Convert df_exp to df_db
-            self.df_exp = self.df_db            
+            self.df_exp = self.df_db       
+          
             
             self.df_db_rev = self.df_db.set_index(keys=['taxa'], inplace=False, drop=True)    
             self.df_db_rev.to_excel(self.path_db)
-
+            
+            self.df_exp_healthy = pd.read_excel(self.path_db)
+            
         except Exception as e:
             print(str(e))
             rv = False

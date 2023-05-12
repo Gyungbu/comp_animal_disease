@@ -443,7 +443,7 @@ class CompAnimalDisease:
 ####################################
 if __name__ == '__main__':
     
-    path_exp = 'input/PDmirror_output_dog_1340.csv'
+    path_exp = 'input/PDmirror_output_dog.csv'
     #path_exp = 'input/PCmirror_output_cat_1409.csv'
     
     companimal = CompAnimalDisease(path_exp)
