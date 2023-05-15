@@ -425,7 +425,7 @@ class CompAnimalDisease:
                                 index=self.df_percentile_rank.index, columns=self.df_percentile_rank.columns)
 
             # Save the output file - df_eval
-            self.df_eval.to_csv(self.path_comp_eval_output, encoding="utf-8-sig")
+            self.df_eval.iloc[:,:-4].to_csv(self.path_comp_eval_output, encoding="utf-8-sig")
             
             print('Analysis Complete')         
             
@@ -443,8 +443,8 @@ class CompAnimalDisease:
 ####################################
 if __name__ == '__main__':
     
-    path_exp = 'input/PDmirror_output_dog_1629.csv'
-    #path_exp = 'input/PCmirror_output_cat_1520.csv'
+    #path_exp = 'input/PDmirror_output_dog_1629.csv'
+    path_exp = 'input/PCmirror_output_cat_1520.csv'
     
     companimal = CompAnimalDisease(path_exp)
     companimal.ReadDB()
