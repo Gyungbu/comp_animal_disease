@@ -216,7 +216,7 @@ class CompAnimalDiseaseUpdateMRS:
                         condition_micro = (self.df_exp.taxa == row_beta['microbiome'])
 
                         if (len(self.df_exp[condition_micro]) > 0):      
-                            abundance = self.df_exp[condition_micro][self.li_new_sample_name[i]].values[0] 
+                            abundance = self.df_exp[condition_micro][self.li_new_sample_name[i]].values[0]
                             mrs += row_beta['beta'] * math.log10(100*abundance + 1)  
 
                     mrs /= len(self.df_beta[condition_phen])       

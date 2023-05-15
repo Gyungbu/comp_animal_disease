@@ -409,13 +409,13 @@ class CompAnimalDisease:
         try:                  
             # Define the conditions and corresponding values
             conditions = [
-                self.df_percentile_rank > 80,
-                (self.df_percentile_rank > 60) & (self.df_percentile_rank <= 80),
-                (self.df_percentile_rank > 40) & (self.df_percentile_rank <= 60),
-                (self.df_percentile_rank > 10) & (self.df_percentile_rank <= 40),
+                self.df_percentile_rank > 90,
+                (self.df_percentile_rank > 70) & (self.df_percentile_rank <= 90),
+                (self.df_percentile_rank > 30) & (self.df_percentile_rank <= 70),
+                (self.df_percentile_rank > 10) & (self.df_percentile_rank <= 30),
                 self.df_percentile_rank <= 10
             ]
-            values = ['excellent', 'good', 'average', 'caution', 'bad']
+            values = [1, 2, 3, 4, 5]
 
             # Apply the conditions and values using np.where()
             self.df_eval = pd.DataFrame(np.where(conditions[0], values[0],
@@ -443,8 +443,8 @@ class CompAnimalDisease:
 ####################################
 if __name__ == '__main__':
     
-    path_exp = 'input/PDmirror_output_dog.csv'
-    #path_exp = 'input/PCmirror_output_cat_1409.csv'
+    #path_exp = 'input/PDmirror_output_dog_1629.csv'
+    path_exp = 'input/PCmirror_output_cat_1520.csv'
     
     companimal = CompAnimalDisease(path_exp)
     companimal.ReadDB()
