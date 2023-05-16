@@ -2,7 +2,7 @@
 ### ex) python comp_update_mrs.py "/home/kbkim/comp_animal_disease/input/PDmirror_output_dog_1340.csv"
 ### ex) python comp_update_mrs.py "/home/kbkim/comp_animal_disease/input/PCmirror_output_cat_1409.csv"
 
-import os
+import os, datetime
 import pandas as pd
 import sys
 import math
@@ -20,7 +20,29 @@ if len(sys.argv) < 2:
 # path_exp : Path of Merged Proportion file to analyze
 path_exp = sys.argv[1]
 
-# Common Functions #
+#-------------------------------------------------------
+# 공통 함수
+#-------------------------------------------------------
+def WriteLog(functionname, msg, type='INFO', fplog=None):
+    #strmsg = "[%s][%s][%s] %s\n" % (datetime.datetime.now(), type, functionname, msg)
+    #if( DEBUGMODE ): 
+    #    print(strmsg)
+    #else:
+    #    if( fplog != None ):
+    #        fplog.write(strmsg)
+    
+    head = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    writestr = f"[{head}][{functionname}] {msg}\n"
+    #if( DEBUGMODE ):
+    if( True ):
+        #print(message)
+        writestr = f"[{functionname}] {msg}\n"
+        print(writestr)
+        
+    if( fplog != None ):
+        fplog.write(writestr)
+        fplog.flush()
+        
 # Histogram Plot - mrs 
 def save_histograms_to_file(df, filename):
     num_rows = df.shape[1]
@@ -37,7 +59,7 @@ def save_histograms_to_file(df, filename):
 # MainClass
 ###################################
 class CompAnimalDiseaseUpdateMRS:
-    def __init__(self, path_exp):
+    def __init__(self, path_exp, fplog=None):
         """
         Initializes a CompAnimalDiseaseUpdateMRS object.
 
@@ -47,6 +69,7 @@ class CompAnimalDiseaseUpdateMRS:
         
         self.path_exp = path_exp
         self.species = path_exp.split('_')[-2]   # dog or cat
+        self.__fplog=fplog
         
         if self.species in ['dog', 'cat']:  
             curdir = os.path.abspath('')
@@ -61,7 +84,6 @@ class CompAnimalDiseaseUpdateMRS:
             self.df_exp = None
             self.df_mrs = None
             self.df_db_rev = None
-            self.df_exp_healthy = None
 
             self.li_diversity = None
             self.li_new_sample_name = None
@@ -85,6 +107,9 @@ class CompAnimalDiseaseUpdateMRS:
         A tuple (success, message), where success is a boolean indicating whether the operation was successful,
         and message is a string containing a success or error message.
         """          
+        myNAME = self.__class__.__name__+"::"+sys._getframe().f_code.co_name
+        WriteLog(myNAME, "In", type='INFO', fplog=self.__fplog)
+        
         rv = True
         rvmsg = "Success"
         
@@ -116,6 +141,8 @@ class CompAnimalDiseaseUpdateMRS:
         A tuple (success, message), where success is a boolean indicating whether the operation was successful,
         and message is a string containing a success or error message.
         """   
+        myNAME = self.__class__.__name__+"::"+sys._getframe().f_code.co_name
+        WriteLog(myNAME, "In", type='INFO', fplog=self.__fplog)
         rv = True
         rvmsg = "Success"
         
@@ -130,66 +157,26 @@ class CompAnimalDiseaseUpdateMRS:
             
             self.df_db_rev = self.df_db.set_index(keys=['taxa'], inplace=False, drop=True)    
             self.df_db_rev.to_excel(self.path_db)
-            
-            self.df_exp_healthy = pd.read_excel(self.path_db)
-            
-        except Exception as e:
-            print(str(e))
-            rv = False
-            rvmsg = str(e)
-            sys.exit()
-            
-        return rv, rvmsg
 
-
-    def SubtractAbundance(self): 
-        """
-        Subtract the abundance for each microbiome in the df_exp.
-
-        Returns:
-        A tuple (success, message), where success is a boolean indicating whether the operation was successful,
-        and message is a string containing a success or error message.
-        """         
-        rv = True
-        rvmsg = "Success"
-        
-        try: 
             # Delete the diversity, observed rows
             if (list(self.df_exp['taxa'][0:2]) == ['diversity', 'observed']) & (list(self.df_db['taxa'][0:2]) == ['diversity', 'observed']):
                 self.li_diversity = list(self.df_exp.iloc[0,1:]) # li_diversity : Alpha-Diversity list 
                 self.df_exp = self.df_exp.iloc[2:,:]
                 self.df_db = self.df_db.iloc[2:,:]
-                self.df_exp_healthy = self.df_exp_healthy.iloc[2:,:]
 
             # li_new_sample_name : Sample name list 
             # li_phenotype : Phenotype list 
             self.li_new_sample_name = list(self.df_exp.columns)[1:]  
             self.li_phenotype = list(dict.fromkeys(self.df_beta['phenotype']))
             
-            # Subtract the abundance - df_exp
-            for idx_beta, row_beta in self.df_beta.iterrows(): 
-                li_micro_sub = []
-
-                if pd.isna(row_beta['microbiome_subtract']) is False:
-                    li_micro_sub = row_beta['microbiome_subtract'].split('\n')
-
-                    for micro_sub in li_micro_sub:
-                        condition = (self.df_exp.taxa == row_beta['microbiome'])
-                        condition_sub = (self.df_exp.taxa == micro_sub)
-
-                        if len(self.df_exp[condition_sub]) > 0:
-
-                            for sample_name in self.li_new_sample_name:
-                                self.df_exp.loc[condition, sample_name] -= self.df_exp[condition_sub][sample_name].values[0]                
-           
         except Exception as e:
             print(str(e))
             rv = False
             rvmsg = str(e)
-            print("Check the diversity & observed rows in the exp file or db file")
             sys.exit()
-    
+            
         return rv, rvmsg
+
 
     def CalculateMRS(self): 
         """
@@ -198,7 +185,10 @@ class CompAnimalDiseaseUpdateMRS:
         Returns:
         A tuple (success, message), where success is a boolean indicating whether the operation was successful,
         and message is a string containing a success or error message.
-        """        
+        """
+        myNAME = self.__class__.__name__+"::"+sys._getframe().f_code.co_name
+        WriteLog(myNAME, "In", type='INFO', fplog=self.__fplog)
+        
         rv = True
         rvmsg = "Success"
         
@@ -214,10 +204,23 @@ class CompAnimalDiseaseUpdateMRS:
 
                     for idx_beta, row_beta in self.df_beta[condition_phen].iterrows():
                         condition_micro = (self.df_exp.taxa == row_beta['microbiome'])
+                        abundance = 0
 
                         if (len(self.df_exp[condition_micro]) > 0):      
-                            abundance = self.df_exp[condition_micro][self.li_new_sample_name[i]].values[0]
-                            mrs += row_beta['beta'] * math.log10(100*abundance + 1)  
+                            abundance += self.df_exp[condition_micro][self.li_new_sample_name[i]].values[0] 
+                        
+                        li_micro_sub = []
+
+                        if pd.isna(row_beta['microbiome_subtract']) is False:
+                            li_micro_sub = row_beta['microbiome_subtract'].split('\n')
+
+                            for micro_sub in li_micro_sub:
+                                condition_sub = (self.df_exp.taxa == micro_sub)
+
+                                if len(self.df_exp[condition_sub]) > 0:
+                                    abundance -= self.df_exp[condition_sub][self.li_new_sample_name[i]].values[0]     
+                            
+                        mrs += row_beta['beta'] * math.log10(100*abundance + 1) 
 
                     mrs /= len(self.df_beta[condition_phen])       
                     self.df_mrs.loc[self.li_new_sample_name[i], self.li_phenotype[j]] = -mrs
@@ -227,9 +230,8 @@ class CompAnimalDiseaseUpdateMRS:
             rv = False
             rvmsg = str(e)
             print("Error has occurred in the CalculateMRS process")
-            sys.exit()
     
-        return rv, rvmsg       
+        return rv, rvmsg   
 
     def CalculateDysbiosis(self): 
         """
@@ -238,34 +240,59 @@ class CompAnimalDiseaseUpdateMRS:
         Returns:
         A tuple (success, message), where success is a boolean indicating whether the operation was successful,
         and message is a string containing a success or error message.
-        """          
+        """         
+        myNAME = self.__class__.__name__+"::"+sys._getframe().f_code.co_name
+        WriteLog(myNAME, "In", type='INFO', fplog=self.__fplog)
+        
         rv = True
         rvmsg = "Success"
         
         try: 
-            self.df_mrs['Dysbiosis'] = 0           
+            self.df_mrs['Dysbiosis'] = 0
             self.li_microbiome = list(dict.fromkeys(self.df_beta['microbiome']))
             
-            for i in range(len(self.li_new_sample_name)):         
+            for i in range(len(self.li_new_sample_name)):
                 dysbiosis = 0
                 
                 for j in range(len(self.li_microbiome)):
                     condition_harmful = (self.df_beta.microbiome == self.li_microbiome[j]) & (self.df_beta.beta == 1) 
                     condition_beneficial = (self.df_beta.microbiome == self.li_microbiome[j]) & (self.df_beta.beta == -1) 
                     
-                    if (len(self.df_beta[condition_harmful]) >= 1) & (len(self.df_beta[condition_beneficial]) == 0):                   
+                    if (len(self.df_beta[condition_harmful]) >= 1) & (len(self.df_beta[condition_beneficial]) == 0):
                         condition_micro = (self.df_exp.taxa == self.li_microbiome[j])
+                        abundance = 0
 
                         if (len(self.df_exp[condition_micro]) > 0):      
-                            abundance = self.df_exp[condition_micro][self.li_new_sample_name[i]].values[0] 
-                            dysbiosis += math.log10(100*abundance + 1)           
+                            abundance += self.df_exp[condition_micro][self.li_new_sample_name[i]].values[0]    
+                            li_micro_sub = []
+                            if pd.isna(self.df_beta[condition_harmful]['microbiome_subtract'].values[0]) is False:
+                                li_micro_sub = self.df_beta[condition_harmful]['microbiome_subtract'].values[0].split('\n')
+
+                                for micro_sub in li_micro_sub:
+                                    condition_sub = (self.df_exp.taxa == micro_sub)
+
+                                    if len(self.df_exp[condition_sub]) > 0:
+                                        abundance -= self.df_exp[condition_sub][self.li_new_sample_name[i]].values[0]                                  
+                                        
+                            dysbiosis += math.log10(100*abundance + 1)            
                             
-                    elif (len(self.df_beta[condition_harmful]) == 0) & (len(self.df_beta[condition_beneficial]) >= 1):                   
+                    elif (len(self.df_beta[condition_harmful]) == 0) & (len(self.df_beta[condition_beneficial]) >= 1):
                         condition_micro = (self.df_exp.taxa == self.li_microbiome[j])
+                        abundance = 0
 
                         if (len(self.df_exp[condition_micro]) > 0):      
-                            abundance = self.df_exp[condition_micro][self.li_new_sample_name[i]].values[0]  
-                            dysbiosis -= math.log10(100*abundance + 1)       
+                            abundance += self.df_exp[condition_micro][self.li_new_sample_name[i]].values[0]  
+                            li_micro_sub = []
+                            if pd.isna(self.df_beta[condition_beneficial]['microbiome_subtract'].values[0]) is False:
+                                li_micro_sub = self.df_beta[condition_beneficial]['microbiome_subtract'].values[0].split('\n')                     
+                                
+                                for micro_sub in li_micro_sub:
+                                    condition_sub = (self.df_exp.taxa == micro_sub)
+
+                                    if len(self.df_exp[condition_sub]) > 0:
+                                        abundance -= self.df_exp[condition_sub][self.li_new_sample_name[i]].values[0]       
+                                        
+                            dysbiosis -= math.log10(100*abundance + 1)      
                             
                 self.df_mrs.loc[self.li_new_sample_name[i], 'Dysbiosis'] = -dysbiosis
                  
@@ -274,9 +301,8 @@ class CompAnimalDiseaseUpdateMRS:
             rv = False
             rvmsg = str(e)
             print("Error has occurred in the CalculateDysbiosis process")
-            sys.exit()
     
-        return rv, rvmsg          
+        return rv, rvmsg        
 
     def CalculateHealthyDistance(self): 
         """
@@ -285,7 +311,10 @@ class CompAnimalDiseaseUpdateMRS:
         Returns:
         A tuple (success, message), where success is a boolean indicating whether the operation was successful,
         and message is a string containing a success or error message.
-        """            
+        """           
+        myNAME = self.__class__.__name__+"::"+sys._getframe().f_code.co_name
+        WriteLog(myNAME, "In", type='INFO', fplog=self.__fplog)
+        
         rv = True
         rvmsg = "Success"
         
@@ -301,26 +330,26 @@ class CompAnimalDiseaseUpdateMRS:
                 li_micro_sub = []
                 li_micro = row_healthy['microbiome'].split('\n')
                 np_abundance_temp = np.zeros((1,len(self.li_new_sample_name)), dtype=float)
-                   
+                
                 for micro in li_micro:
-                    condition_append = (self.df_exp_healthy.taxa == micro)
+                    condition_append = (self.df_exp.taxa == micro)
 
-                    if len(self.df_exp_healthy[condition_append]) > 0:
-                        np_abundance_temp += self.df_exp_healthy[condition_append].to_numpy()[:,1:].astype(np.float64)
-                        np_abundance_others -= self.df_exp_healthy[condition_append].to_numpy()[:,1:].astype(np.float64)
+                    if len(self.df_exp[condition_append]) > 0:
+                        np_abundance_temp += self.df_exp[condition_append].to_numpy()[:,1:].astype(np.float64)
+                        np_abundance_others -= self.df_exp[condition_append].to_numpy()[:,1:].astype(np.float64)
                 
                 if pd.isna(row_healthy['microbiome_subtract']) is False:
                     li_micro_sub = row_healthy['microbiome_subtract'].split('\n')
 
                     for micro_sub in li_micro_sub:
-                        condition_sub = (self.df_exp_healthy.taxa == micro_sub)
+                        condition_sub = (self.df_exp.taxa == micro_sub)
             
-                        if len(self.df_exp_healthy[condition_sub]) > 0:
-                            np_abundance_temp -= self.df_exp_healthy[condition_sub].to_numpy()[:,1:].astype(np.float64)
-                            np_abundance_others += self.df_exp_healthy[condition_sub].to_numpy()[:,1:].astype(np.float64)
+                        if len(self.df_exp[condition_sub]) > 0:
+                            np_abundance_temp -= self.df_exp[condition_sub].to_numpy()[:,1:].astype(np.float64)
+                            np_abundance_others += self.df_exp[condition_sub].to_numpy()[:,1:].astype(np.float64)
                             
                 np_abundance = np.concatenate((np_abundance,np_abundance_temp),axis=0)
-            
+
             np_abundance = np.concatenate((np_abundance,np_abundance_others),axis=0)
             np_abundance = np_abundance.transpose()
             
@@ -338,9 +367,9 @@ class CompAnimalDiseaseUpdateMRS:
                 healthy_dist = np.linalg.norm(np_abundance[idx] - np_healthy_abundance)            
                 self.df_mrs.loc[self.li_new_sample_name[idx], 'HealthyDistance'] = -healthy_dist
             
-            # Calculate the TotalRiskScore
+            # Calculate the TotalScore
             self.df_mrs['TotalScore'] = self.df_mrs['Dysbiosis'] + self.df_mrs['HealthyDistance'] + self.df_mrs['Diversity']
-            
+ 
         except Exception as e:
             print(str(e))
             rv = False
@@ -358,6 +387,8 @@ class CompAnimalDiseaseUpdateMRS:
         A tuple (success, message), where success is a boolean indicating whether the operation was successful,
         and message is a string containing a success or error message.
         """         
+        myNAME = self.__class__.__name__+"::"+sys._getframe().f_code.co_name
+        WriteLog(myNAME, "In", type='INFO', fplog=self.__fplog)
         rv = True
         rvmsg = "Success"
         
@@ -386,7 +417,6 @@ if __name__ == '__main__':
     companimal = CompAnimalDiseaseUpdateMRS(path_exp)
     companimal.ReadDB()
     companimal.InsertDataDB()
-    companimal.SubtractAbundance()
     companimal.CalculateMRS()    
     companimal.CalculateDysbiosis()  
     companimal.CalculateHealthyDistance()     

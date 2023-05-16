@@ -9,6 +9,8 @@ import sys
 import math
 import matplotlib.pyplot as plt
 import numpy as np
+import seaborn as sns
+import scipy
 from skbio.stats.composition import multiplicative_replacement, clr
 
 # path_exp : Path of Merged Proportion file to analyze
@@ -75,16 +77,17 @@ class CompAnimalDisease:
 
         #self.path_comp_percentile_rank_output = f"{self.outdir}/{os.path.basename(self.path_exp).replace('_report.txt','')}.csv"
         #self.path_comp_eval_output = f"{self.outdir}/{os.path.basename(self.path_exp).replace('_report.txt','_eval')}.csv"
+        #self.path_comp_scatterplot_output = f"{self.outdir}/{os.path.basename(self.path_exp).replace('_report.txt','_scatterplot')}.png"
         
         self.path_comp_percentile_rank_output = f"{curdir}/output/comp_percentile_rank_{self.species}.csv"
         self.path_comp_eval_output = f"{curdir}/output/comp_eval_{self.species}.csv"
+        self.path_comp_scatterplot_output = f"{curdir}/output/comp_scatterplot_{self.species}.png"
 
         ##ReadDB  에서 읽어들인데이타
         self.df_beta = None
         self.df_healthy = None
         self.df_exp = None
         self.df_mrs_db = None
-        self.df_exp_healthy = None
         
         self.df_mrs = None
         self.df_percentile_rank = None
@@ -112,40 +115,17 @@ class CompAnimalDisease:
             self.df_healthy = pd.read_excel(self.path_healthy)
             self.df_exp = pd.read_csv(self.path_exp)
             self.df_mrs_db = pd.read_excel(self.path_mrs_db, index_col=0) 
-            self.df_exp_healthy = pd.read_csv(self.path_exp)
+            self.df_exp = pd.read_csv(self.path_exp)
 
             self.df_beta.rename(columns = {"Disease": "phenotype", "NCBI name": "ncbi_name", "MIrROR name": "microbiome", "Health sign": "beta", "subtract": "microbiome_subtract"}, inplace=True)
             self.df_beta = self.df_beta[["phenotype", "ncbi_name", "microbiome", "beta", "microbiome_subtract"]]
             self.df_beta['beta'] = self.df_beta['beta'].replace({'유해': 1, '유익': -1})
 
-        except Exception as e:
-            print(str(e))
-            rv = False
-            rvmsg = str(e)
-            
-        return rv, rvmsg
-
-    def SubtractAbundance(self): 
-        """
-        Subtract the abundance for each microbiome in the df_exp.
-
-        Returns:
-        A tuple (success, message), where success is a boolean indicating whether the operation was successful,
-        and message is a string containing a success or error message.
-        """          
-        myNAME = self.__class__.__name__+"::"+sys._getframe().f_code.co_name
-        WriteLog(myNAME, "In", type='INFO', fplog=self.__fplog)
-        
-        rv = True
-        rvmsg = "Success"
-        
-        try: 
             print(self.df_exp)
             # Delete the diversity, observed rows
             if (list(self.df_exp['taxa'][0:2]) == ['diversity', 'observed']):
                 self.li_diversity = list(self.df_exp.iloc[0,1:]) # li_diversity : Alpha-Diversity list 
                 self.df_exp = self.df_exp.iloc[2:,:]
-                self.df_exp_healthy = self.df_exp_healthy.iloc[2:,:]
                             
             # li_new_sample_name : Sample name list 
             # li_phenotype : Phenotype list 
@@ -154,29 +134,13 @@ class CompAnimalDisease:
             
             print(self.df_beta)
             
-            # Subtract the abundance - df_exp
-            for idx_beta, row_beta in self.df_beta.iterrows(): 
-                li_micro_sub = []
-
-                if pd.isna(row_beta['microbiome_subtract']) is False:
-                    li_micro_sub = row_beta['microbiome_subtract'].split('\n')
-
-                    for micro_sub in li_micro_sub:
-                        condition = (self.df_exp.taxa == row_beta['microbiome'])
-                        condition_sub = (self.df_exp.taxa == micro_sub)
-
-                        if len(self.df_exp[condition_sub]) > 0:
-
-                            for sample_name in self.li_new_sample_name:
-                                self.df_exp.loc[condition, sample_name] -= self.df_exp[condition_sub][sample_name].values[0]
-           
         except Exception as e:
             print(str(e))
             rv = False
             rvmsg = str(e)
-            print("Check the diversity & observed rows in the exp file or db file")
-    
+            
         return rv, rvmsg
+
 
     def CalculateMRS(self): 
         """
@@ -204,10 +168,23 @@ class CompAnimalDisease:
 
                     for idx_beta, row_beta in self.df_beta[condition_phen].iterrows():
                         condition_micro = (self.df_exp.taxa == row_beta['microbiome'])
+                        abundance = 0
 
                         if (len(self.df_exp[condition_micro]) > 0):      
-                            abundance = self.df_exp[condition_micro][self.li_new_sample_name[i]].values[0] 
-                            mrs += row_beta['beta'] * math.log10(100*abundance + 1) 
+                            abundance += self.df_exp[condition_micro][self.li_new_sample_name[i]].values[0] 
+                        
+                        li_micro_sub = []
+
+                        if pd.isna(row_beta['microbiome_subtract']) is False:
+                            li_micro_sub = row_beta['microbiome_subtract'].split('\n')
+
+                            for micro_sub in li_micro_sub:
+                                condition_sub = (self.df_exp.taxa == micro_sub)
+
+                                if len(self.df_exp[condition_sub]) > 0:
+                                    abundance -= self.df_exp[condition_sub][self.li_new_sample_name[i]].values[0]     
+                            
+                        mrs += row_beta['beta'] * math.log10(100*abundance + 1) 
 
                     mrs /= len(self.df_beta[condition_phen])       
                     self.df_mrs.loc[self.li_new_sample_name[i], self.li_phenotype[j]] = -mrs
@@ -247,16 +224,38 @@ class CompAnimalDisease:
                     
                     if (len(self.df_beta[condition_harmful]) >= 1) & (len(self.df_beta[condition_beneficial]) == 0):
                         condition_micro = (self.df_exp.taxa == self.li_microbiome[j])
+                        abundance = 0
 
                         if (len(self.df_exp[condition_micro]) > 0):      
-                            abundance = self.df_exp[condition_micro][self.li_new_sample_name[i]].values[0] 
+                            abundance += self.df_exp[condition_micro][self.li_new_sample_name[i]].values[0]    
+                            li_micro_sub = []
+                            if pd.isna(self.df_beta[condition_harmful]['microbiome_subtract'].values[0]) is False:
+                                li_micro_sub = self.df_beta[condition_harmful]['microbiome_subtract'].values[0].split('\n')
+
+                                for micro_sub in li_micro_sub:
+                                    condition_sub = (self.df_exp.taxa == micro_sub)
+
+                                    if len(self.df_exp[condition_sub]) > 0:
+                                        abundance -= self.df_exp[condition_sub][self.li_new_sample_name[i]].values[0]                                  
+                                        
                             dysbiosis += math.log10(100*abundance + 1)            
                             
                     elif (len(self.df_beta[condition_harmful]) == 0) & (len(self.df_beta[condition_beneficial]) >= 1):
                         condition_micro = (self.df_exp.taxa == self.li_microbiome[j])
+                        abundance = 0
 
                         if (len(self.df_exp[condition_micro]) > 0):      
-                            abundance = self.df_exp[condition_micro][self.li_new_sample_name[i]].values[0]  
+                            abundance += self.df_exp[condition_micro][self.li_new_sample_name[i]].values[0]  
+                            li_micro_sub = []
+                            if pd.isna(self.df_beta[condition_beneficial]['microbiome_subtract'].values[0]) is False:
+                                li_micro_sub = self.df_beta[condition_beneficial]['microbiome_subtract'].values[0].split('\n')                     
+                                
+                                for micro_sub in li_micro_sub:
+                                    condition_sub = (self.df_exp.taxa == micro_sub)
+
+                                    if len(self.df_exp[condition_sub]) > 0:
+                                        abundance -= self.df_exp[condition_sub][self.li_new_sample_name[i]].values[0]       
+                                        
                             dysbiosis -= math.log10(100*abundance + 1)      
                             
                 self.df_mrs.loc[self.li_new_sample_name[i], 'Dysbiosis'] = -dysbiosis
@@ -297,21 +296,21 @@ class CompAnimalDisease:
                 np_abundance_temp = np.zeros((1,len(self.li_new_sample_name)), dtype=float)
                 
                 for micro in li_micro:
-                    condition_append = (self.df_exp_healthy.taxa == micro)
+                    condition_append = (self.df_exp.taxa == micro)
 
-                    if len(self.df_exp_healthy[condition_append]) > 0:
-                        np_abundance_temp += self.df_exp_healthy[condition_append].to_numpy()[:,1:].astype(np.float64)
-                        np_abundance_others -= self.df_exp_healthy[condition_append].to_numpy()[:,1:].astype(np.float64)
+                    if len(self.df_exp[condition_append]) > 0:
+                        np_abundance_temp += self.df_exp[condition_append].to_numpy()[:,1:].astype(np.float64)
+                        np_abundance_others -= self.df_exp[condition_append].to_numpy()[:,1:].astype(np.float64)
                 
                 if pd.isna(row_healthy['microbiome_subtract']) is False:
                     li_micro_sub = row_healthy['microbiome_subtract'].split('\n')
 
                     for micro_sub in li_micro_sub:
-                        condition_sub = (self.df_exp_healthy.taxa == micro_sub)
+                        condition_sub = (self.df_exp.taxa == micro_sub)
             
-                        if len(self.df_exp_healthy[condition_sub]) > 0:
-                            np_abundance_temp -= self.df_exp_healthy[condition_sub].to_numpy()[:,1:].astype(np.float64)
-                            np_abundance_others += self.df_exp_healthy[condition_sub].to_numpy()[:,1:].astype(np.float64)
+                        if len(self.df_exp[condition_sub]) > 0:
+                            np_abundance_temp -= self.df_exp[condition_sub].to_numpy()[:,1:].astype(np.float64)
+                            np_abundance_others += self.df_exp[condition_sub].to_numpy()[:,1:].astype(np.float64)
                             
                 np_abundance = np.concatenate((np_abundance,np_abundance_temp),axis=0)
 
@@ -379,7 +378,7 @@ class CompAnimalDisease:
             self.df_percentile_rank = self.df_percentile_rank.fillna('None')
 
             # Save the output file - Percentile Rank of the samples
-            self.df_percentile_rank.to_csv(self.path_comp_percentile_rank_output, encoding="utf-8-sig")
+            self.df_percentile_rank.to_csv(self.path_comp_percentile_rank_output, encoding="utf-8-sig", index_label='serial_number')
 
             #print('Analysis Complete')         
             
@@ -425,10 +424,8 @@ class CompAnimalDisease:
                                 index=self.df_percentile_rank.index, columns=self.df_percentile_rank.columns)
 
             # Save the output file - df_eval
-            self.df_eval.iloc[:,:-4].to_csv(self.path_comp_eval_output, encoding="utf-8-sig")
-            
-            print('Analysis Complete')         
-            
+            self.df_eval.iloc[:,:-4].to_csv(self.path_comp_eval_output, encoding="utf-8-sig", index_label='serial_number')
+                           
         except Exception as e:
             print(str(e))
             rv = False
@@ -437,21 +434,78 @@ class CompAnimalDisease:
             sys.exit()
     
         return rv, rvmsg
+
+    def DrawScatterPlot(self):
+        """
+        Draw a scatter plot using the values of diversity, dysbiosis, and HealthyDistance
+
+        Returns:
+        A tuple (success, message), where success is a boolean indicating whether the operation was successful,
+        and message is a string containing a success or error message.
+        """          
+        myNAME = self.__class__.__name__+"::"+sys._getframe().f_code.co_name
+        WriteLog(myNAME, "In", type='INFO', fplog=self.__fplog)
+         
+        rv = True
+        rvmsg = "Success"
+        
+        try:  
+            
+            #create regplot
+            p = sns.regplot(data=self.df_mrs_db, x=self.df_mrs_db['Diversity'], y=(self.df_mrs_db['Dysbiosis'] + self.df_mrs_db['HealthyDistance']))
+
+            #calculate slope and intercept of regression equation
+            slope, intercept, r, p, sterr = scipy.stats.linregress(x=p.get_lines()[0].get_xdata(),
+                                                                   y=p.get_lines()[0].get_ydata())
+
+            # generate x and y values for the line
+            x_vals = np.linspace(start=self.df_mrs_db['Diversity'].min(), stop=self.df_mrs_db['Diversity'].max(), num=100)
+            y_vals = intercept + slope * x_vals       
+            
+            
+            sns.scatterplot(x=self.df_mrs_db['Diversity'], y=(self.df_mrs_db['Dysbiosis'] + self.df_mrs_db['HealthyDistance']), hue = self.df_mrs_db['TotalScore'] , data=self.df_mrs_db)
+            
+            # add new points to the scatter plot
+            sns.scatterplot(x=self.df_mrs['Diversity'], y=(self.df_mrs['Dysbiosis'] + self.df_mrs['HealthyDistance']), data=self.df_mrs, color='g')            
+            
+            plt.plot(x_vals, y_vals, '-', color='red', label=f'y = {slope:.2f}x + {intercept:.2f}')
+            plt.xlabel('Diversity')
+            plt.ylabel('Dysbiosis+HealthyDistance')
+            plt.legend()
+            
+            x_median = self.df_mrs_db['Diversity'].median(skipna=True)
+            y_median = (self.df_mrs_db['Dysbiosis'] + self.df_mrs_db['HealthyDistance']).median(skipna=True)
+            plt.axhline(y=y_median, xmin=0, xmax=1)
+            plt.axvline(x=x_median, ymin=0, ymax=1)
+            # save the scatter plot
+            plt.savefig(self.path_comp_scatterplot_output , dpi=300, bbox_inches='tight')          
+            
+            print('Analysis Complete')    
+
+        except Exception as e:
+            print(str(e))
+            rv = False
+            rvmsg = str(e)
+            print("Error has occurred in the DrawScatterPlot process")
+            sys.exit()
     
+        return rv, rvmsg    
 ####################################
 # main
 ####################################
 if __name__ == '__main__':
     
     #path_exp = 'input/PDmirror_output_dog_1629.csv'
-    path_exp = 'input/PCmirror_output_cat_1520.csv'
+    #path_exp = 'input/PCmirror_output_cat_1520.csv'
+    
+    path_exp = 'input/PD_dog_one_sample.csv'
+    #path_exp = 'input/PC_cat_one_sample.csv'
     
     companimal = CompAnimalDisease(path_exp)
     companimal.ReadDB()
-    companimal.SubtractAbundance()
     companimal.CalculateMRS()    
     companimal.CalculateDysbiosis()    
     companimal.CalculateHealthyDistance()
     companimal.CalculatePercentileRank()
     companimal.EvaluatePercentileRank()
-    
+    companimal.DrawScatterPlot()    
