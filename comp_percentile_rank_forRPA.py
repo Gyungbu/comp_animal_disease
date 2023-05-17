@@ -413,9 +413,9 @@ class CompAnimalDisease:
             conditions = [
                 self.df_percentile_rank > 90,
                 (self.df_percentile_rank > 70) & (self.df_percentile_rank <= 90),
-                (self.df_percentile_rank > 30) & (self.df_percentile_rank <= 70),
-                (self.df_percentile_rank > 10) & (self.df_percentile_rank <= 30),
-                self.df_percentile_rank <= 10
+                (self.df_percentile_rank > 50) & (self.df_percentile_rank <= 70),
+                (self.df_percentile_rank > 30) & (self.df_percentile_rank <= 50),
+                self.df_percentile_rank <= 30
             ]
             values = [1, 2, 3, 4, 5]
 
