@@ -344,7 +344,7 @@ class CompAnimalDisease:
             print("Error has occurred in the CalculateHealthyDistance process")
             sys.exit()
     
-        return rv, rvmsg          
+        return rv, rvmsg    
     
     def CalculatePercentileRank(self):
         """
@@ -463,8 +463,7 @@ class CompAnimalDisease:
 
             # generate x and y values for the line
             x_vals = np.linspace(start=self.df_mrs_db['Diversity'].min(), stop=self.df_mrs_db['Diversity'].max(), num=100)
-            y_vals = intercept + slope * x_vals       
-            
+            y_vals = intercept + slope * x_vals                   
             
             sns.scatterplot(x=self.df_mrs_db['Diversity'], y=(self.df_mrs_db['Dysbiosis'] + self.df_mrs_db['HealthyDistance']), hue = self.df_mrs_db['TotalScore'] , data=self.df_mrs_db)
             
@@ -476,10 +475,32 @@ class CompAnimalDisease:
             plt.ylabel('Dysbiosis+HealthyDistance')
             plt.legend()
             
-            x_median = self.df_mrs_db['Diversity'].median(skipna=True)
-            y_median = (self.df_mrs_db['Dysbiosis'] + self.df_mrs_db['HealthyDistance']).median(skipna=True)
-            plt.axhline(y=y_median, xmin=0, xmax=1)
-            plt.axvline(x=x_median, ymin=0, ymax=1)
+            if self.species == 'dog':
+                li_x_quartile = list(self.df_mrs_db['Diversity'].quantile([0.6]))
+                li_y_quartile = list((self.df_mrs_db['Dysbiosis'] + self.df_mrs_db['HealthyDistance']).quantile([0.6]))                
+                                
+            else:
+                li_x_quartile = list(self.df_mrs_db['Diversity'].quantile([0.6]))
+                li_y_quartile = list((self.df_mrs_db['Dysbiosis'] + self.df_mrs_db['HealthyDistance']).quantile([0.6]))
+                         
+            plt.axhline(y=li_y_quartile[0], xmin=0, xmax=1)    
+            plt.axvline(x=li_x_quartile[0], ymin=0, ymax=1)
+            
+            E_data = self.df_mrs_db[(self.df_mrs_db['Diversity'] >= li_x_quartile[0]) & ((self.df_mrs_db['Dysbiosis'] + self.df_mrs_db['HealthyDistance']) >= li_y_quartile[0])]
+            B_data = self.df_mrs_db[(self.df_mrs_db['Diversity'] < li_x_quartile[0]) & ((self.df_mrs_db['Dysbiosis'] + self.df_mrs_db['HealthyDistance']) >= li_y_quartile[0])]
+            D_data = self.df_mrs_db[(self.df_mrs_db['Diversity'] < li_x_quartile[0]) & ((self.df_mrs_db['Dysbiosis'] + self.df_mrs_db['HealthyDistance']) < li_y_quartile[0])]
+            I_data = self.df_mrs_db[(self.df_mrs_db['Diversity'] >= li_x_quartile[0]) & ((self.df_mrs_db['Dysbiosis'] + self.df_mrs_db['HealthyDistance']) < li_y_quartile[0])]
+
+            E_percent = len(E_data) / len(self.df_mrs_db)
+            B_percent = len(B_data) / len(self.df_mrs_db)
+            D_percent = len(D_data) / len(self.df_mrs_db)
+            I_percent = len(I_data) / len(self.df_mrs_db)
+
+            print("Percentage of samples in E: ", 100*E_percent, '%')
+            print("Percentage of samples in B: ", 100*B_percent, '%') 
+            print("Percentage of samples in D: ", 100*D_percent, '%')
+            print("Percentage of samples in I: ", 100*I_percent, '%')  
+            
             # save the scatter plot
             plt.savefig(self.path_comp_scatterplot_output , dpi=300, bbox_inches='tight')          
             
@@ -501,8 +522,8 @@ if __name__ == '__main__':
     #path_exp = 'input/PDmirror_output_dog_1629.csv'
     #path_exp = 'input/PCmirror_output_cat_1520.csv'
     
-    #path_exp = 'input/PD_dog_one_sample.csv'
-    path_exp = 'input/PC_cat_one_sample.csv'
+    path_exp = 'input/PD_dog_one_sample.csv'
+    #path_exp = 'input/PC_cat_one_sample.csv'
     
     companimal = CompAnimalDisease(path_exp)
     companimal.ReadDB()
