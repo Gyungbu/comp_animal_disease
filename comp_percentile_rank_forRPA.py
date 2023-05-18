@@ -97,9 +97,9 @@ class CompAnimalDisease:
         self.li_new_sample_name = None
         self.li_phenotype = None
         self.li_microbiome = None
+        self.li_x_quartile = None
+        self.li_y_quartile = None
 
-
-    
     # Load the DB file
     # df_beta : Data frame of of Phenotype-Microbiome information
     # df_exp : Data frame of Experimental result information - Abundance    
@@ -394,49 +394,6 @@ class CompAnimalDisease:
     
         return rv, rvmsg
 
-    def EvaluatePercentileRank(self):
-        """
-        Evaluate based on percentile rank value and Save the Evaluation data as an Csv file
-
-        Returns:
-        A tuple (success, message), where success is a boolean indicating whether the operation was successful,
-        and message is a string containing a success or error message.
-        """          
-        myNAME = self.__class__.__name__+"::"+sys._getframe().f_code.co_name
-        WriteLog(myNAME, "In", type='INFO', fplog=self.__fplog)
-         
-        rv = True
-        rvmsg = "Success"
-        
-        try:                  
-            # Define the conditions and corresponding values
-            conditions = [
-                self.df_percentile_rank > 90,
-                (self.df_percentile_rank > 70) & (self.df_percentile_rank <= 90),
-                (self.df_percentile_rank > 50) & (self.df_percentile_rank <= 70),
-                (self.df_percentile_rank > 30) & (self.df_percentile_rank <= 50),
-                self.df_percentile_rank <= 30
-            ]
-            values = [1, 2, 3, 4, 5]
-
-            # Apply the conditions and values using np.where()
-            self.df_eval = pd.DataFrame(np.where(conditions[0], values[0],
-                                np.where(conditions[1], values[1],
-                                np.where(conditions[2], values[2],
-                                np.where(conditions[3], values[3], values[4])))),
-                                index=self.df_percentile_rank.index, columns=self.df_percentile_rank.columns)
-
-            # Save the output file - df_eval
-            self.df_eval.iloc[:,:-4].to_csv(self.path_comp_eval_output, encoding="utf-8-sig", index_label='serial_number')
-                           
-        except Exception as e:
-            print(str(e))
-            rv = False
-            rvmsg = str(e)
-            print("Error has occurred in the EvaluatePercentileRank process")
-            sys.exit()
-    
-        return rv, rvmsg
 
     def DrawScatterPlot(self):
         """
@@ -476,20 +433,21 @@ class CompAnimalDisease:
             plt.legend()
             
             if self.species == 'dog':
-                li_x_quartile = list(self.df_mrs_db['Diversity'].quantile([0.6]))
-                li_y_quartile = list((self.df_mrs_db['Dysbiosis'] + self.df_mrs_db['HealthyDistance']).quantile([0.6]))                
+                self.li_x_quartile = list(self.df_mrs_db['Diversity'].quantile([0.6]))
+                self.li_y_quartile = list((self.df_mrs_db['Dysbiosis'] + self.df_mrs_db['HealthyDistance']).quantile([0.6]))                
                                 
             else:
-                li_x_quartile = list(self.df_mrs_db['Diversity'].quantile([0.6]))
-                li_y_quartile = list((self.df_mrs_db['Dysbiosis'] + self.df_mrs_db['HealthyDistance']).quantile([0.6]))
+                self.li_x_quartile = list(self.df_mrs_db['Diversity'].quantile([0.6]))
+                self.li_y_quartile = list((self.df_mrs_db['Dysbiosis'] + self.df_mrs_db['HealthyDistance']).quantile([0.6]))
                          
-            plt.axhline(y=li_y_quartile[0], xmin=0, xmax=1)    
-            plt.axvline(x=li_x_quartile[0], ymin=0, ymax=1)
+            plt.axhline(y=self.li_y_quartile[0], xmin=0, xmax=1)    
+            plt.axvline(x=self.li_x_quartile[0], ymin=0, ymax=1)
             
-            E_data = self.df_mrs_db[(self.df_mrs_db['Diversity'] >= li_x_quartile[0]) & ((self.df_mrs_db['Dysbiosis'] + self.df_mrs_db['HealthyDistance']) >= li_y_quartile[0])]
-            B_data = self.df_mrs_db[(self.df_mrs_db['Diversity'] < li_x_quartile[0]) & ((self.df_mrs_db['Dysbiosis'] + self.df_mrs_db['HealthyDistance']) >= li_y_quartile[0])]
-            D_data = self.df_mrs_db[(self.df_mrs_db['Diversity'] < li_x_quartile[0]) & ((self.df_mrs_db['Dysbiosis'] + self.df_mrs_db['HealthyDistance']) < li_y_quartile[0])]
-            I_data = self.df_mrs_db[(self.df_mrs_db['Diversity'] >= li_x_quartile[0]) & ((self.df_mrs_db['Dysbiosis'] + self.df_mrs_db['HealthyDistance']) < li_y_quartile[0])]
+            '''
+            E_data = self.df_mrs_db[(self.df_mrs_db['Diversity'] >= self.li_x_quartile[0]) & ((self.df_mrs_db['Dysbiosis'] + self.df_mrs_db['HealthyDistance']) >= self.li_y_quartile[0])]
+            B_data = self.df_mrs_db[(self.df_mrs_db['Diversity'] < self.li_x_quartile[0]) & ((self.df_mrs_db['Dysbiosis'] + self.df_mrs_db['HealthyDistance']) >= self.li_y_quartile[0])]
+            D_data = self.df_mrs_db[(self.df_mrs_db['Diversity'] < self.li_x_quartile[0]) & ((self.df_mrs_db['Dysbiosis'] + self.df_mrs_db['HealthyDistance']) < self.li_y_quartile[0])]
+            I_data = self.df_mrs_db[(self.df_mrs_db['Diversity'] >= self.li_x_quartile[0]) & ((self.df_mrs_db['Dysbiosis'] + self.df_mrs_db['HealthyDistance']) < self.li_y_quartile[0])]
 
             E_percent = len(E_data) / len(self.df_mrs_db)
             B_percent = len(B_data) / len(self.df_mrs_db)
@@ -500,6 +458,7 @@ class CompAnimalDisease:
             print("Percentage of samples in B: ", 100*B_percent, '%') 
             print("Percentage of samples in D: ", 100*D_percent, '%')
             print("Percentage of samples in I: ", 100*I_percent, '%')  
+            '''
             
             # save the scatter plot
             plt.savefig(self.path_comp_scatterplot_output , dpi=300, bbox_inches='tight')          
@@ -514,6 +473,64 @@ class CompAnimalDisease:
             sys.exit()
     
         return rv, rvmsg    
+    
+    def EvaluatePercentileRank(self):
+        """
+        Evaluate based on percentile rank value and Save the Evaluation data as an Csv file
+
+        Returns:
+        A tuple (success, message), where success is a boolean indicating whether the operation was successful,
+        and message is a string containing a success or error message.
+        """          
+        myNAME = self.__class__.__name__+"::"+sys._getframe().f_code.co_name
+        WriteLog(myNAME, "In", type='INFO', fplog=self.__fplog)
+         
+        rv = True
+        rvmsg = "Success"
+        
+        try:                  
+            # Define the conditions and corresponding values
+            conditions = [
+                self.df_percentile_rank > 90,
+                (self.df_percentile_rank > 70) & (self.df_percentile_rank <= 90),
+                (self.df_percentile_rank > 50) & (self.df_percentile_rank <= 70),
+                (self.df_percentile_rank > 30) & (self.df_percentile_rank <= 50),
+                self.df_percentile_rank <= 30
+            ]
+            values = [1, 2, 3, 4, 5]
+
+            # Apply the conditions and values using np.where()
+            self.df_eval = pd.DataFrame(np.where(conditions[0], values[0],
+                                np.where(conditions[1], values[1],
+                                np.where(conditions[2], values[2],
+                                np.where(conditions[3], values[3], values[4])))),
+                                index=self.df_percentile_rank.index, columns=self.df_percentile_rank.columns)
+            self.df_eval = self.df_eval.iloc[:,:-4]
+
+            
+
+            # Type E, B, I, D
+            conditions = [
+                (self.df_mrs['Diversity'] >= self.li_x_quartile[0]) & ((self.df_mrs['Dysbiosis'] + self.df_mrs['HealthyDistance']) >= self.li_y_quartile[0]),
+                (self.df_mrs['Diversity'] < self.li_x_quartile[0]) & ((self.df_mrs['Dysbiosis'] + self.df_mrs['HealthyDistance']) >= self.li_y_quartile[0]),
+                (self.df_mrs['Diversity'] >= self.li_x_quartile[0]) & ((self.df_mrs['Dysbiosis'] + self.df_mrs['HealthyDistance']) < self.li_y_quartile[0]),
+                (self.df_mrs['Diversity'] < self.li_x_quartile[0]) & ((self.df_mrs['Dysbiosis'] + self.df_mrs['HealthyDistance']) < self.li_y_quartile[0])
+            ]
+            values = ['E', 'B', 'I', 'D']
+
+            self.df_eval['Type'] = np.select(conditions, values)
+
+            # Save the output file - df_eval
+            self.df_eval.to_csv(self.path_comp_eval_output, encoding="utf-8-sig", index_label='serial_number')
+                           
+        except Exception as e:
+            print(str(e))
+            rv = False
+            rvmsg = str(e)
+            print("Error has occurred in the EvaluatePercentileRank process")
+            sys.exit()
+    
+        return rv, rvmsg    
 ####################################
 # main
 ####################################
@@ -522,8 +539,8 @@ if __name__ == '__main__':
     #path_exp = 'input/PDmirror_output_dog_1629.csv'
     #path_exp = 'input/PCmirror_output_cat_1520.csv'
     
-    path_exp = 'input/PD_dog_one_sample.csv'
-    #path_exp = 'input/PC_cat_one_sample.csv'
+    #path_exp = 'input/PD_dog_one_sample.csv'
+    path_exp = 'input/PC_cat_one_sample.csv'
     
     companimal = CompAnimalDisease(path_exp)
     companimal.ReadDB()
@@ -531,5 +548,5 @@ if __name__ == '__main__':
     companimal.CalculateDysbiosis()    
     companimal.CalculateHealthyDistance()
     companimal.CalculatePercentileRank()
-    companimal.EvaluatePercentileRank()
     companimal.DrawScatterPlot()    
+    companimal.EvaluatePercentileRank()    
