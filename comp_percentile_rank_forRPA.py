@@ -334,7 +334,10 @@ class CompAnimalDisease:
                 
                 self.df_mrs.loc[self.li_new_sample_name[idx], 'HealthyDistance'] = -healthy_dist
             
-            # Calculate the TotalScore
+            #print(self.df_mrs_db['Dysbiosis'].std(skipna=False))
+            #print(self.df_mrs_db['Dysbiosis'].mean(skipna=False))
+            
+            # Calculate the TotalScore            
             self.df_mrs['TotalScore'] = self.df_mrs['Dysbiosis'] + self.df_mrs['HealthyDistance'] + self.df_mrs['Diversity']
  
         except Exception as e:
@@ -382,8 +385,6 @@ class CompAnimalDisease:
 
             # Save the output file - Percentile Rank of the samples
             self.df_percentile_rank.to_csv(self.path_comp_percentile_rank_output, encoding="utf-8-sig", index_label='serial_number')
-
-            #print('Analysis Complete')         
             
         except Exception as e:
             print(str(e))
@@ -462,9 +463,7 @@ class CompAnimalDisease:
             
             # save the scatter plot
             plt.savefig(self.path_comp_scatterplot_output , dpi=300, bbox_inches='tight')          
-            
-            print('Analysis Complete')    
-
+              
         except Exception as e:
             print(str(e))
             rv = False
@@ -507,8 +506,6 @@ class CompAnimalDisease:
                                 index=self.df_percentile_rank.index, columns=self.df_percentile_rank.columns)
             self.df_eval = self.df_eval.iloc[:,:-4]
 
-            
-
             # Type E, B, I, D
             conditions = [
                 (self.df_mrs['Diversity'] >= self.li_x_quartile[0]) & ((self.df_mrs['Dysbiosis'] + self.df_mrs['HealthyDistance']) >= self.li_y_quartile[0]),
@@ -522,7 +519,9 @@ class CompAnimalDisease:
 
             # Save the output file - df_eval
             self.df_eval.to_csv(self.path_comp_eval_output, encoding="utf-8-sig", index_label='serial_number')
-                           
+            
+            print('Analysis Complete')  
+            
         except Exception as e:
             print(str(e))
             rv = False
@@ -531,6 +530,7 @@ class CompAnimalDisease:
             sys.exit()
     
         return rv, rvmsg    
+    
 ####################################
 # main
 ####################################
@@ -539,8 +539,8 @@ if __name__ == '__main__':
     #path_exp = 'input/PDmirror_output_dog_1629.csv'
     #path_exp = 'input/PCmirror_output_cat_1520.csv'
     
-    path_exp = 'input/PD_dog_one_sample.csv'
-    #path_exp = 'input/PC_cat_one_sample.csv'
+    #path_exp = 'input/PD_dog_one_sample.csv'
+    path_exp = 'input/PC_cat_one_sample.csv'
     
     companimal = CompAnimalDisease(path_exp)
     companimal.ReadDB()
