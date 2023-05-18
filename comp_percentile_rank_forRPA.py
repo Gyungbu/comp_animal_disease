@@ -427,7 +427,7 @@ class CompAnimalDisease:
             # add new points to the scatter plot
             sns.scatterplot(x=self.df_mrs['Diversity'], y=(self.df_mrs['Dysbiosis'] + self.df_mrs['HealthyDistance']), data=self.df_mrs, color='g')            
             
-            plt.plot(x_vals, y_vals, '-', color='red', label=f'y = {slope:.2f}x + {intercept:.2f}')
+            plt.plot(x_vals, y_vals, '--', color='lightgray', label=f'y = {slope:.2f}x + {intercept:.2f}')
             plt.xlabel('Diversity')
             plt.ylabel('Dysbiosis+HealthyDistance')
             plt.legend()
@@ -440,8 +440,8 @@ class CompAnimalDisease:
                 self.li_x_quartile = list(self.df_mrs_db['Diversity'].quantile([0.6]))
                 self.li_y_quartile = list((self.df_mrs_db['Dysbiosis'] + self.df_mrs_db['HealthyDistance']).quantile([0.6]))
                          
-            plt.axhline(y=self.li_y_quartile[0], xmin=0, xmax=1)    
-            plt.axvline(x=self.li_x_quartile[0], ymin=0, ymax=1)
+            plt.axhline(y=self.li_y_quartile[0], xmin=0, xmax=1, color='red', linestyle='--')    
+            plt.axvline(x=self.li_x_quartile[0], ymin=0, ymax=1, color='red', linestyle='--')
             
             '''
             E_data = self.df_mrs_db[(self.df_mrs_db['Diversity'] >= self.li_x_quartile[0]) & ((self.df_mrs_db['Dysbiosis'] + self.df_mrs_db['HealthyDistance']) >= self.li_y_quartile[0])]
@@ -539,8 +539,8 @@ if __name__ == '__main__':
     #path_exp = 'input/PDmirror_output_dog_1629.csv'
     #path_exp = 'input/PCmirror_output_cat_1520.csv'
     
-    #path_exp = 'input/PD_dog_one_sample.csv'
-    path_exp = 'input/PC_cat_one_sample.csv'
+    path_exp = 'input/PD_dog_one_sample.csv'
+    #path_exp = 'input/PC_cat_one_sample.csv'
     
     companimal = CompAnimalDisease(path_exp)
     companimal.ReadDB()
