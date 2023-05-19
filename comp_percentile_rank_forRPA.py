@@ -498,13 +498,11 @@ class CompAnimalDisease:
             ]
             values = [1, 2, 3, 4, 5]
 
-            # Apply the conditions and values using np.where()
-            self.df_eval = pd.DataFrame(np.where(conditions[0], values[0],
-                                np.where(conditions[1], values[1],
-                                np.where(conditions[2], values[2],
-                                np.where(conditions[3], values[3], values[4])))),
-                                index=self.df_percentile_rank.index, columns=self.df_percentile_rank.columns)
-            self.df_eval = self.df_eval.iloc[:,:-4]
+            # Apply the conditions and values using np.select()
+            self.df_eval = pd.DataFrame(np.select(conditions, values),
+                                        index=self.df_percentile_rank.index,
+                                        columns=self.df_percentile_rank.columns)
+            self.df_eval = self.df_eval.iloc[:, :-4]
 
             # Type E, B, I, D
             conditions = [
