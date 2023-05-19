@@ -259,7 +259,7 @@ class CompAnimalDisease:
                             dysbiosis -= math.log10(100*abundance + 1)      
                             
                 self.df_mrs.loc[self.li_new_sample_name[i], 'Dysbiosis'] = -dysbiosis
-                 
+                         
         except Exception as e:
             print(str(e))
             rv = False
@@ -537,8 +537,8 @@ if __name__ == '__main__':
     #path_exp = 'input/PDmirror_output_dog_1629.csv'
     #path_exp = 'input/PCmirror_output_cat_1520.csv'
     
-    #path_exp = 'input/PD_dog_one_sample.csv'
-    path_exp = 'input/PC_cat_one_sample.csv'
+    path_exp = 'input/PD_dog_one_sample.csv'
+    #path_exp = 'input/PC_cat_one_sample.csv'
     
     companimal = CompAnimalDisease(path_exp)
     companimal.ReadDB()
