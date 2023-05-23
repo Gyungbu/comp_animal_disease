@@ -66,8 +66,9 @@ class CompAnimalDisease:
         curdir = os.path.dirname(os.path.abspath(__file__))
         self.path_beta = f"{curdir}/input/phenotype_microbiome_{self.species}.xlsx"
         self.path_healthy = f"{curdir}/input/healthy_profile_{self.species}.xlsx"
-        self.path_mrs_db = f"{curdir}/input/comp_mrs_{self.species}.xlsx"
-        self.path_dysbiosis = f"{curdir}/input/dysbiosis_microbiome.xlsx"
+        self.path_mrs_db = f"{curdir}/input/comp_mrs_db_{self.species}.xlsx"
+        self.path_percentile_rank_db = f"{curdir}/input/comp_percentile_rank_db_{self.species}.csv"
+        self.path_dysbiosis = f"{curdir}/input/dysbiosis_microbiome_{self.species}.xlsx"
         
         
         ###output
@@ -90,6 +91,7 @@ class CompAnimalDisease:
         self.df_exp = None
         self.df_mrs_db = None
         self.df_dysbiosis = None
+        self.df_percentile_rank_db = None
         
         self.df_mrs = None
         self.df_percentile_rank = None
@@ -119,6 +121,7 @@ class CompAnimalDisease:
             self.df_exp = pd.read_csv(self.path_exp)
             self.df_mrs_db = pd.read_excel(self.path_mrs_db, index_col=0) 
             self.df_exp = pd.read_csv(self.path_exp)
+            self.df_percentile_rank_db = pd.read_csv(self.path_percentile_rank_db)
 
             self.df_beta.rename(columns = {"Disease": "phenotype", "NCBI name": "ncbi_name", "MIrROR name": "microbiome", "Health sign": "beta", "subtract": "microbiome_subtract"}, inplace=True)
             self.df_beta = self.df_beta[["phenotype", "ncbi_name", "microbiome", "beta", "microbiome_subtract"]]
@@ -345,7 +348,7 @@ class CompAnimalDisease:
             #print(self.df_mrs_db['Dysbiosis'].mean(skipna=False))
             
             # Calculate the TotalScore            
-            self.df_mrs['TotalScore'] = self.df_mrs['Dysbiosis'] + self.df_mrs['HealthyDistance'] + self.df_mrs['Diversity']
+            #self.df_mrs['TotalScore'] = self.df_mrs['Dysbiosis'] + self.df_mrs['HealthyDistance'] + self.df_mrs['Diversity']
  
         except Exception as e:
             print(str(e))
@@ -372,7 +375,7 @@ class CompAnimalDisease:
         
         try:      
             # Append the Dysbiosis, HealthyDistance, Diversity, TotalRiskScore to phenotype list
-            self.li_phenotype += ['Dysbiosis', 'HealthyDistance', 'Diversity', 'TotalScore']
+            self.li_phenotype += ['Dysbiosis', 'HealthyDistance', 'Diversity']
 
             # Create an empty data frame with the same index and columns as the df_mrs data frame
             self.df_percentile_rank = pd.DataFrame(index = self.li_new_sample_name, columns = self.li_phenotype)
@@ -385,8 +388,10 @@ class CompAnimalDisease:
             # Replace percentile ranks that are less than or equal to 5 with 5, and those that are greater than or equal to 95 with 95
             for i in range(len(self.li_phenotype)):
                 self.df_percentile_rank.loc[self.df_percentile_rank[self.li_phenotype[i]]<=5, self.li_phenotype[i]] = 5.0
-                self.df_percentile_rank.loc[self.df_percentile_rank[self.li_phenotype[i]]>=95, self.li_phenotype[i]] = 95.0        
-        
+                self.df_percentile_rank.loc[self.df_percentile_rank[self.li_phenotype[i]]>=95, self.li_phenotype[i]] = 95.0      
+                
+            self.df_percentile_rank['TotalScore'] = (self.df_percentile_rank['Dysbiosis'] + self.df_percentile_rank['HealthyDistance'] + self.df_percentile_rank['Diversity'])/3
+            
             # Replace missing values with the string 'None'    
             self.df_percentile_rank = self.df_percentile_rank.fillna('None')
 
@@ -420,47 +425,39 @@ class CompAnimalDisease:
         try:  
             
             #create regplot
-            p = sns.regplot(data=self.df_mrs_db, x=self.df_mrs_db['Diversity'], y=(self.df_mrs_db['Dysbiosis'] + self.df_mrs_db['HealthyDistance']))
+            p = sns.regplot(data=self.df_percentile_rank_db, x=self.df_percentile_rank_db['Diversity'], y=(self.df_percentile_rank_db['Dysbiosis'] + self.df_percentile_rank_db['HealthyDistance'])/2)
 
             #calculate slope and intercept of regression equation
             slope, intercept, r, p, sterr = scipy.stats.linregress(x=p.get_lines()[0].get_xdata(),
                                                                    y=p.get_lines()[0].get_ydata())
 
             # generate x and y values for the line
-            x_vals = np.linspace(start=self.df_mrs_db['Diversity'].min(), stop=self.df_mrs_db['Diversity'].max(), num=100)
+            x_vals = np.linspace(start=self.df_percentile_rank_db['Diversity'].min(), stop=self.df_percentile_rank_db['Diversity'].max(), num=100)
             y_vals = intercept + slope * x_vals                   
             
-            sns.scatterplot(x=self.df_mrs_db['Diversity'], y=(self.df_mrs_db['Dysbiosis'] + self.df_mrs_db['HealthyDistance']), hue = self.df_mrs_db['TotalScore'] , data=self.df_mrs_db)
+            sns.scatterplot(x=self.df_percentile_rank_db['Diversity'], y=(self.df_percentile_rank_db['Dysbiosis'] + self.df_percentile_rank_db['HealthyDistance'])/2, hue = self.df_percentile_rank_db['TotalScore'] , data=self.df_percentile_rank_db)
             
             # add new points to the scatter plot
-            sns.scatterplot(x=self.df_mrs['Diversity'], y=(self.df_mrs['Dysbiosis'] + self.df_mrs['HealthyDistance']), data=self.df_mrs, color='g')            
+            sns.scatterplot(x=self.df_percentile_rank['Diversity'], y=(self.df_percentile_rank['Dysbiosis'] + self.df_percentile_rank['HealthyDistance'])/2, data=self.df_percentile_rank, color='g')            
             
             plt.plot(x_vals, y_vals, '--', color='lightgray', label=f'y = {slope:.2f}x + {intercept:.2f}')
-            plt.xlabel('Diversity')
-            plt.ylabel('Dysbiosis+HealthyDistance')
+            plt.xlabel('POS_Diversity')
+            plt.ylabel('(POS_Dysbiosis+POS_HealthyDistance)/2')
             plt.legend()
-            
-            if self.species == 'dog':
-                self.li_x_quartile = list(self.df_mrs_db['Diversity'].quantile([0.6]))
-                self.li_y_quartile = list((self.df_mrs_db['Dysbiosis'] + self.df_mrs_db['HealthyDistance']).quantile([0.6]))                
-                                
-            else:
-                self.li_x_quartile = list(self.df_mrs_db['Diversity'].quantile([0.6]))
-                self.li_y_quartile = list((self.df_mrs_db['Dysbiosis'] + self.df_mrs_db['HealthyDistance']).quantile([0.6]))
-                         
-            plt.axhline(y=self.li_y_quartile[0], xmin=0, xmax=1, color='red', linestyle='--')    
-            plt.axvline(x=self.li_x_quartile[0], ymin=0, ymax=1, color='red', linestyle='--')
+                                 
+            plt.axhline(y=60, xmin=0, xmax=1, color='red', linestyle='--')    
+            plt.axvline(x=60, ymin=0, ymax=1, color='red', linestyle='--')
             
             
-            E_data = self.df_mrs_db[(self.df_mrs_db['Diversity'] >= self.li_x_quartile[0]) & ((self.df_mrs_db['Dysbiosis'] + self.df_mrs_db['HealthyDistance']) >= self.li_y_quartile[0])]
-            B_data = self.df_mrs_db[(self.df_mrs_db['Diversity'] < self.li_x_quartile[0]) & ((self.df_mrs_db['Dysbiosis'] + self.df_mrs_db['HealthyDistance']) >= self.li_y_quartile[0])]
-            D_data = self.df_mrs_db[(self.df_mrs_db['Diversity'] < self.li_x_quartile[0]) & ((self.df_mrs_db['Dysbiosis'] + self.df_mrs_db['HealthyDistance']) < self.li_y_quartile[0])]
-            I_data = self.df_mrs_db[(self.df_mrs_db['Diversity'] >= self.li_x_quartile[0]) & ((self.df_mrs_db['Dysbiosis'] + self.df_mrs_db['HealthyDistance']) < self.li_y_quartile[0])]
+            E_data = self.df_percentile_rank_db[(self.df_percentile_rank_db['Diversity'] >= 60) & ((self.df_percentile_rank_db['Dysbiosis'] + self.df_percentile_rank_db['HealthyDistance'])/2 >= 60)]
+            B_data = self.df_percentile_rank_db[(self.df_percentile_rank_db['Diversity'] < 60) & ((self.df_percentile_rank_db['Dysbiosis'] + self.df_percentile_rank_db['HealthyDistance'])/2 >= 60)]
+            D_data = self.df_percentile_rank_db[(self.df_percentile_rank_db['Diversity'] < 60) & ((self.df_percentile_rank_db['Dysbiosis'] + self.df_percentile_rank_db['HealthyDistance'])/2 < 60)]
+            I_data = self.df_percentile_rank_db[(self.df_percentile_rank_db['Diversity'] >= 60) & ((self.df_percentile_rank_db['Dysbiosis'] + self.df_percentile_rank_db['HealthyDistance'])/2 < 60)]
 
-            E_percent = len(E_data) / len(self.df_mrs_db)
-            B_percent = len(B_data) / len(self.df_mrs_db)
-            D_percent = len(D_data) / len(self.df_mrs_db)
-            I_percent = len(I_data) / len(self.df_mrs_db)
+            E_percent = len(E_data) / len(self.df_percentile_rank_db)
+            B_percent = len(B_data) / len(self.df_percentile_rank_db)
+            D_percent = len(D_data) / len(self.df_percentile_rank_db)
+            I_percent = len(I_data) / len(self.df_percentile_rank_db)
 
             print("Percentage of samples in E: ", 100*E_percent, '%')
             print("Percentage of samples in B: ", 100*B_percent, '%') 
@@ -513,10 +510,10 @@ class CompAnimalDisease:
 
             # Type E, B, I, D
             conditions = [
-                (self.df_mrs['Diversity'] >= self.li_x_quartile[0]) & ((self.df_mrs['Dysbiosis'] + self.df_mrs['HealthyDistance']) >= self.li_y_quartile[0]),
-                (self.df_mrs['Diversity'] < self.li_x_quartile[0]) & ((self.df_mrs['Dysbiosis'] + self.df_mrs['HealthyDistance']) >= self.li_y_quartile[0]),
-                (self.df_mrs['Diversity'] >= self.li_x_quartile[0]) & ((self.df_mrs['Dysbiosis'] + self.df_mrs['HealthyDistance']) < self.li_y_quartile[0]),
-                (self.df_mrs['Diversity'] < self.li_x_quartile[0]) & ((self.df_mrs['Dysbiosis'] + self.df_mrs['HealthyDistance']) < self.li_y_quartile[0])
+                (self.df_percentile_rank['Diversity'] >= 60) & ((self.df_percentile_rank['Dysbiosis'] + self.df_percentile_rank['HealthyDistance'])/2 >= 60),
+                (self.df_percentile_rank['Diversity'] < 60) & ((self.df_percentile_rank['Dysbiosis'] + self.df_percentile_rank['HealthyDistance'])/2 >= 60),
+                (self.df_percentile_rank['Diversity'] >= 60) & ((self.df_percentile_rank['Dysbiosis'] + self.df_percentile_rank['HealthyDistance'])/2 < 60),
+                (self.df_percentile_rank['Diversity'] < 60) & ((self.df_percentile_rank['Dysbiosis'] + self.df_percentile_rank['HealthyDistance'])/2 < 60)
             ]
             values = ['E', 'B', 'I', 'D']
 
@@ -597,8 +594,8 @@ class CompAnimalDisease:
                                         
                             beneficial_abundance += abundance   
                             
-                self.df_eval.loc[self.li_new_sample_name[i], 'harmful_ratio'] = harmful_abundance / (harmful_abundance + beneficial_abundance) * 100
-                self.df_eval.loc[self.li_new_sample_name[i], 'beneficial_ratio'] = beneficial_abundance / (harmful_abundance + beneficial_abundance) * 100
+                self.df_eval.loc[self.li_new_sample_name[i], 'harmful_ratio'] = harmful_abundance * 100
+                self.df_eval.loc[self.li_new_sample_name[i], 'beneficial_ratio'] = beneficial_abundance * 100
             
             # Save the output file - df_eval
             self.df_eval.to_csv(self.path_comp_eval_output, encoding="utf-8-sig", index_label='serial_number')
@@ -616,8 +613,8 @@ if __name__ == '__main__':
     #path_exp = 'input/PDmirror_output_dog_1629.csv'
     #path_exp = 'input/PCmirror_output_cat_1520.csv'
     
-    path_exp = 'input/PD_dog_one_sample.csv'
-    #path_exp = 'input/PC_cat_one_sample.csv'
+    #path_exp = 'input/PD_dog_one_sample.csv'
+    path_exp = 'input/PC_cat_one_sample.csv'
     
     companimal = CompAnimalDisease(path_exp)
     companimal.ReadDB()

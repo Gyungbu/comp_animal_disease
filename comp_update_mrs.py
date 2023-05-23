@@ -8,6 +8,7 @@ import sys
 import math
 import matplotlib.pyplot as plt
 import numpy as np
+from scipy.stats import percentileofscore
 from skbio.stats.composition import multiplicative_replacement, clr
 
 # Check if the script is being called with the correct arguments
@@ -76,9 +77,10 @@ class CompAnimalDiseaseUpdateMRS:
             self.path_beta = f"{curdir}/input/phenotype_microbiome_{self.species}.xlsx"
             self.path_healthy = f"{curdir}/input/healthy_profile_{self.species}.xlsx"
             self.path_db = f"{curdir}/input/db_abundance_{self.species}.xlsx"
-            self.path_mrs_db = f"{curdir}/input/comp_mrs_{self.species}.xlsx"
+            self.path_mrs_db = f"{curdir}/input/comp_mrs_db_{self.species}.xlsx"
             self.path_hist = f"{curdir}/output/mrs_hist_{self.species}.png"
-            self.path_dysbiosis = f"{curdir}/input/dysbiosis_microbiome.xlsx"
+            self.path_dysbiosis = f"{curdir}/input/dysbiosis_microbiome_{self.species}.xlsx"
+            self.path_percentile_rank_db = f"{curdir}/input/comp_percentile_rank_db_{self.species}.csv"
 
             self.df_beta = None
             self.df_db = None
@@ -86,6 +88,7 @@ class CompAnimalDiseaseUpdateMRS:
             self.df_mrs = None
             self.df_db_rev = None
             self.df_dysbiosis = None
+            self.df_percentile_rank = None
 
             self.li_diversity = None
             self.li_new_sample_name = None
@@ -379,7 +382,7 @@ class CompAnimalDiseaseUpdateMRS:
                 self.df_mrs.loc[self.li_new_sample_name[idx], 'HealthyDistance'] = -healthy_dist
             
             # Calculate the TotalScore
-            self.df_mrs['TotalScore'] = self.df_mrs['Dysbiosis'] + self.df_mrs['HealthyDistance'] + self.df_mrs['Diversity']
+            #self.df_mrs['TotalScore'] = self.df_mrs['Dysbiosis'] + self.df_mrs['HealthyDistance'] + self.df_mrs['Diversity']
  
         except Exception as e:
             print(str(e))
@@ -389,6 +392,51 @@ class CompAnimalDiseaseUpdateMRS:
             sys.exit()
     
         return rv, rvmsg   
+
+    def CalculatePercentileRank(self):
+        """
+        Calculate the Percentile Rank and Save the Percentile Rank data as an Csv file.
+
+        Returns:
+        A tuple (success, message), where success is a boolean indicating whether the operation was successful,
+        and message is a string containing a success or error message.
+        """          
+        myNAME = self.__class__.__name__+"::"+sys._getframe().f_code.co_name
+        WriteLog(myNAME, "In", type='INFO', fplog=self.__fplog)
+         
+        rv = True
+        rvmsg = "Success"
+        
+        try:      
+            # Append the Dysbiosis, HealthyDistance, Diversity, TotalRiskScore to phenotype list
+            self.li_phenotype += ['Dysbiosis', 'HealthyDistance', 'Diversity']
+
+            # Create an empty data frame with the same index and columns as the df_mrs data frame
+            self.df_percentile_rank = pd.DataFrame(index = self.li_new_sample_name, columns = self.li_phenotype)
+            # Loop through all samples and phenotypes and calculate the percentile rank
+            for i in range(len(self.li_new_sample_name)):
+                for j in range(len(self.li_phenotype)):
+                    self.df_percentile_rank.loc[self.li_new_sample_name[i], self.li_phenotype[j]] = (percentileofscore(list(self.df_mrs[self.li_phenotype[j]]), self.df_mrs.loc[self.li_new_sample_name[i], self.li_phenotype[j]], kind='mean')).round(1)
+                 
+            # Outliers
+            # Replace percentile ranks that are less than or equal to 5 with 5, and those that are greater than or equal to 95 with 95
+            for i in range(len(self.li_phenotype)):
+                self.df_percentile_rank.loc[self.df_percentile_rank[self.li_phenotype[i]]<=5, self.li_phenotype[i]] = 5.0
+                self.df_percentile_rank.loc[self.df_percentile_rank[self.li_phenotype[i]]>=95, self.li_phenotype[i]] = 95.0      
+                
+            self.df_percentile_rank['TotalScore'] = (self.df_percentile_rank['Dysbiosis'] + self.df_percentile_rank['HealthyDistance'] + self.df_percentile_rank['Diversity'])/3
+            
+            # Replace missing values with the string 'None'    
+            self.df_percentile_rank = self.df_percentile_rank.fillna('None')
+            
+        except Exception as e:
+            print(str(e))
+            rv = False
+            rvmsg = str(e)
+            print(f"Error has occurred in the {myNAME} process")    
+            sys.exit()
+    
+        return rv, rvmsg
     
     def UpdateMRS(self): 
         """
@@ -403,7 +451,11 @@ class CompAnimalDiseaseUpdateMRS:
         rv = True
         rvmsg = "Success"
         
-        try:                 
+        try:             
+            
+            # Save the output file - Percentile Rank of the samples
+            self.df_percentile_rank.to_csv(self.path_percentile_rank_db, encoding="utf-8-sig", index_label='serial_number')            
+            
             # Save the df_mrs
             self.df_mrs.to_excel(self.path_mrs_db)
    
@@ -431,4 +483,5 @@ if __name__ == '__main__':
     companimal.CalculateMRS()    
     companimal.CalculateDysbiosis()  
     companimal.CalculateHealthyDistance()     
+    companimal.CalculatePercentileRank() 
     companimal.UpdateMRS() 
