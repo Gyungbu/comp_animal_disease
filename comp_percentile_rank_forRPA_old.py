@@ -17,7 +17,7 @@ from skbio.stats.composition import multiplicative_replacement, clr
 #path_exp = sys.argv[1] 
 
 #-------------------------------------------------------
-# Common Function
+# 공통 함수
 #-------------------------------------------------------
 def WriteLog(functionname, msg, type='INFO', fplog=None):
     #strmsg = "[%s][%s][%s] %s\n" % (datetime.datetime.now(), type, functionname, msg)
@@ -67,7 +67,6 @@ class CompAnimalDisease:
         self.path_beta = f"{curdir}/input/phenotype_microbiome_{self.species}.xlsx"
         self.path_healthy = f"{curdir}/input/healthy_profile_{self.species}.xlsx"
         self.path_mrs_db = f"{curdir}/input/comp_mrs_{self.species}.xlsx"
-        self.path_dysbiosis = f"{curdir}/input/dysbiosis_microbiome.xlsx"
         
         
         ###output
@@ -89,7 +88,6 @@ class CompAnimalDisease:
         self.df_healthy = None
         self.df_exp = None
         self.df_mrs_db = None
-        self.df_dysbiosis = None
         
         self.df_mrs = None
         self.df_percentile_rank = None
@@ -114,7 +112,6 @@ class CompAnimalDisease:
         
         try:
             self.df_beta = pd.read_excel(self.path_beta)
-            self.df_dysbiosis = pd.read_excel(self.path_dysbiosis)
             self.df_healthy = pd.read_excel(self.path_healthy)
             self.df_exp = pd.read_csv(self.path_exp)
             self.df_mrs_db = pd.read_excel(self.path_mrs_db, index_col=0) 
@@ -124,10 +121,6 @@ class CompAnimalDisease:
             self.df_beta = self.df_beta[["phenotype", "ncbi_name", "microbiome", "beta", "microbiome_subtract"]]
             self.df_beta['beta'] = self.df_beta['beta'].replace({'유해': 1, '유익': -1})
 
-            self.df_dysbiosis.rename(columns = {"NCBI name": "ncbi_name", "MIrROR name": "microbiome", "Health sign": "beta", "subtract": "microbiome_subtract"}, inplace=True)
-            self.df_dysbiosis = self.df_dysbiosis[["ncbi_name", "microbiome", "beta", "microbiome_subtract"]]
-            self.df_dysbiosis['beta'] = self.df_dysbiosis['beta'].replace({'유해': 1, '유익': -1})
-            
             print(self.df_exp)
             # Delete the diversity, observed rows
             if (list(self.df_exp['taxa'][0:2]) == ['diversity', 'observed']):
@@ -220,24 +213,24 @@ class CompAnimalDisease:
         
         try: 
             self.df_mrs['Dysbiosis'] = 0
-            self.li_microbiome = list(dict.fromkeys(self.df_dysbiosis['microbiome']))
+            self.li_microbiome = list(dict.fromkeys(self.df_beta['microbiome']))
             
             for i in range(len(self.li_new_sample_name)):
                 dysbiosis = 0
                 
                 for j in range(len(self.li_microbiome)):
-                    condition_harmful = (self.df_dysbiosis.microbiome == self.li_microbiome[j]) & (self.df_dysbiosis.beta == 1) 
-                    condition_beneficial = (self.df_dysbiosis.microbiome == self.li_microbiome[j]) & (self.df_dysbiosis.beta == -1) 
+                    condition_harmful = (self.df_beta.microbiome == self.li_microbiome[j]) & (self.df_beta.beta == 1) 
+                    condition_beneficial = (self.df_beta.microbiome == self.li_microbiome[j]) & (self.df_beta.beta == -1) 
                     
-                    if (len(self.df_dysbiosis[condition_harmful]) >= 1) & (len(self.df_dysbiosis[condition_beneficial]) == 0):
+                    if (len(self.df_beta[condition_harmful]) >= 1) & (len(self.df_beta[condition_beneficial]) == 0):
                         condition_micro = (self.df_exp.taxa == self.li_microbiome[j])
                         abundance = 0
 
                         if (len(self.df_exp[condition_micro]) > 0):      
                             abundance += self.df_exp[condition_micro][self.li_new_sample_name[i]].values[0]    
                             li_micro_sub = []
-                            if pd.isna(self.df_dysbiosis[condition_harmful]['microbiome_subtract'].values[0]) is False:
-                                li_micro_sub = self.df_dysbiosis[condition_harmful]['microbiome_subtract'].values[0].split('\n')
+                            if pd.isna(self.df_beta[condition_harmful]['microbiome_subtract'].values[0]) is False:
+                                li_micro_sub = self.df_beta[condition_harmful]['microbiome_subtract'].values[0].split('\n')
 
                                 for micro_sub in li_micro_sub:
                                     condition_sub = (self.df_exp.taxa == micro_sub)
@@ -247,15 +240,15 @@ class CompAnimalDisease:
                                         
                             dysbiosis += math.log10(100*abundance + 1)            
                             
-                    elif (len(self.df_dysbiosis[condition_harmful]) == 0) & (len(self.df_dysbiosis[condition_beneficial]) >= 1):
+                    elif (len(self.df_beta[condition_harmful]) == 0) & (len(self.df_beta[condition_beneficial]) >= 1):
                         condition_micro = (self.df_exp.taxa == self.li_microbiome[j])
                         abundance = 0
 
                         if (len(self.df_exp[condition_micro]) > 0):      
                             abundance += self.df_exp[condition_micro][self.li_new_sample_name[i]].values[0]  
                             li_micro_sub = []
-                            if pd.isna(self.df_dysbiosis[condition_beneficial]['microbiome_subtract'].values[0]) is False:
-                                li_micro_sub = self.df_dysbiosis[condition_beneficial]['microbiome_subtract'].values[0].split('\n')                     
+                            if pd.isna(self.df_beta[condition_beneficial]['microbiome_subtract'].values[0]) is False:
+                                li_micro_sub = self.df_beta[condition_beneficial]['microbiome_subtract'].values[0].split('\n')                     
                                 
                                 for micro_sub in li_micro_sub:
                                     condition_sub = (self.df_exp.taxa == micro_sub)
@@ -451,7 +444,7 @@ class CompAnimalDisease:
             plt.axhline(y=self.li_y_quartile[0], xmin=0, xmax=1, color='red', linestyle='--')    
             plt.axvline(x=self.li_x_quartile[0], ymin=0, ymax=1, color='red', linestyle='--')
             
-            
+            '''
             E_data = self.df_mrs_db[(self.df_mrs_db['Diversity'] >= self.li_x_quartile[0]) & ((self.df_mrs_db['Dysbiosis'] + self.df_mrs_db['HealthyDistance']) >= self.li_y_quartile[0])]
             B_data = self.df_mrs_db[(self.df_mrs_db['Diversity'] < self.li_x_quartile[0]) & ((self.df_mrs_db['Dysbiosis'] + self.df_mrs_db['HealthyDistance']) >= self.li_y_quartile[0])]
             D_data = self.df_mrs_db[(self.df_mrs_db['Diversity'] < self.li_x_quartile[0]) & ((self.df_mrs_db['Dysbiosis'] + self.df_mrs_db['HealthyDistance']) < self.li_y_quartile[0])]
@@ -466,7 +459,7 @@ class CompAnimalDisease:
             print("Percentage of samples in B: ", 100*B_percent, '%') 
             print("Percentage of samples in D: ", 100*D_percent, '%')
             print("Percentage of samples in I: ", 100*I_percent, '%')  
-            
+            '''
             
             # save the scatter plot
             plt.savefig(self.path_comp_scatterplot_output , dpi=300, bbox_inches='tight')          
@@ -523,7 +516,7 @@ class CompAnimalDisease:
             self.df_eval['Type'] = np.select(conditions, values)
 
             # Save the output file - df_eval
-            #self.df_eval.to_csv(self.path_comp_eval_output, encoding="utf-8-sig", index_label='serial_number')
+            self.df_eval.to_csv(self.path_comp_eval_output, encoding="utf-8-sig", index_label='serial_number')
             
             print('Analysis Complete')  
             
@@ -535,79 +528,7 @@ class CompAnimalDisease:
             sys.exit()
     
         return rv, rvmsg    
-       
-    def CalculateMicrobiomeRatio(self): 
-        """
-        Calculate the Beneficial Microbiome Ratio & Harmful Microbiome Ratio
-
-        Returns:
-        A tuple (success, message), where success is a boolean indicating whether the operation was successful,
-        and message is a string containing a success or error message.
-        """         
-        myNAME = self.__class__.__name__+"::"+sys._getframe().f_code.co_name
-        WriteLog(myNAME, "In", type='INFO', fplog=self.__fplog)
-        
-        rv = True
-        rvmsg = "Success"
-        
-        try: 
-            self.li_microbiome = list(dict.fromkeys(self.df_dysbiosis['microbiome']))
-            
-            for i in range(len(self.li_new_sample_name)):
-                harmful_abundance = 0
-                beneficial_abundance = 0
-                
-                for j in range(len(self.li_microbiome)):
-                    condition_harmful = (self.df_dysbiosis.microbiome == self.li_microbiome[j]) & (self.df_dysbiosis.beta == 1) 
-                    condition_beneficial = (self.df_dysbiosis.microbiome == self.li_microbiome[j]) & (self.df_dysbiosis.beta == -1) 
-                    
-                    if (len(self.df_dysbiosis[condition_harmful]) >= 1) & (len(self.df_dysbiosis[condition_beneficial]) == 0):
-                        condition_micro = (self.df_exp.taxa == self.li_microbiome[j])
-                        abundance = 0
-
-                        if (len(self.df_exp[condition_micro]) > 0):      
-                            abundance += self.df_exp[condition_micro][self.li_new_sample_name[i]].values[0]    
-                            li_micro_sub = []
-                            if pd.isna(self.df_dysbiosis[condition_harmful]['microbiome_subtract'].values[0]) is False:
-                                li_micro_sub = self.df_dysbiosis[condition_harmful]['microbiome_subtract'].values[0].split('\n')
-
-                                for micro_sub in li_micro_sub:
-                                    condition_sub = (self.df_exp.taxa == micro_sub)
-
-                                    if len(self.df_exp[condition_sub]) > 0:
-                                        abundance -= self.df_exp[condition_sub][self.li_new_sample_name[i]].values[0]                                  
-                                        
-                            harmful_abundance += abundance       
-                            
-                    elif (len(self.df_dysbiosis[condition_harmful]) == 0) & (len(self.df_dysbiosis[condition_beneficial]) >= 1):
-                        condition_micro = (self.df_exp.taxa == self.li_microbiome[j])
-                        abundance = 0
-
-                        if (len(self.df_exp[condition_micro]) > 0):      
-                            abundance += self.df_exp[condition_micro][self.li_new_sample_name[i]].values[0]  
-                            li_micro_sub = []
-                            if pd.isna(self.df_dysbiosis[condition_beneficial]['microbiome_subtract'].values[0]) is False:
-                                li_micro_sub = self.df_dysbiosis[condition_beneficial]['microbiome_subtract'].values[0].split('\n')                     
-                                
-                                for micro_sub in li_micro_sub:
-                                    condition_sub = (self.df_exp.taxa == micro_sub)
-
-                                    if len(self.df_exp[condition_sub]) > 0:
-                                        abundance -= self.df_exp[condition_sub][self.li_new_sample_name[i]].values[0]       
-                                        
-                            beneficial_abundance += abundance   
-                            
-                self.df_eval.loc[self.li_new_sample_name[i], 'harmful_ratio'] = harmful_abundance / (harmful_abundance + beneficial_abundance) * 100
-                self.df_eval.loc[self.li_new_sample_name[i], 'beneficial_ratio'] = beneficial_abundance / (harmful_abundance + beneficial_abundance) * 100
-            
-            # Save the output file - df_eval
-            self.df_eval.to_csv(self.path_comp_eval_output, encoding="utf-8-sig", index_label='serial_number')
-                
-        except Exception as e:
-            print(str(e))
-            rv = False
-            rvmsg = str(e)
-            print("Error has occurred in the CalculateMicrobiomeRatio process")    
+    
 ####################################
 # main
 ####################################
@@ -627,5 +548,3 @@ if __name__ == '__main__':
     companimal.CalculatePercentileRank()
     companimal.DrawScatterPlot()    
     companimal.EvaluatePercentileRank()    
-    companimal.CalculateMicrobiomeRatio()
-    

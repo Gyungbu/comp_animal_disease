@@ -21,7 +21,7 @@ if len(sys.argv) < 2:
 path_exp = sys.argv[1]
 
 #-------------------------------------------------------
-# Common Function
+# 공통 함수
 #-------------------------------------------------------
 def WriteLog(functionname, msg, type='INFO', fplog=None):
     #strmsg = "[%s][%s][%s] %s\n" % (datetime.datetime.now(), type, functionname, msg)
@@ -78,14 +78,12 @@ class CompAnimalDiseaseUpdateMRS:
             self.path_db = f"{curdir}/input/db_abundance_{self.species}.xlsx"
             self.path_mrs_db = f"{curdir}/input/comp_mrs_{self.species}.xlsx"
             self.path_hist = f"{curdir}/output/mrs_hist_{self.species}.png"
-            self.path_dysbiosis = f"{curdir}/input/dysbiosis_microbiome.xlsx"
 
             self.df_beta = None
             self.df_db = None
             self.df_exp = None
             self.df_mrs = None
             self.df_db_rev = None
-            self.df_dysbiosis = None
 
             self.li_diversity = None
             self.li_new_sample_name = None
@@ -117,7 +115,6 @@ class CompAnimalDiseaseUpdateMRS:
         
         try:       
             self.df_beta = pd.read_excel(self.path_beta)
-            self.df_dysbiosis = pd.read_excel(self.path_dysbiosis)
             self.df_healthy = pd.read_excel(self.path_healthy)
             self.df_db = pd.read_excel(self.path_db)
             self.df_exp = pd.read_csv(self.path_exp)
@@ -125,11 +122,7 @@ class CompAnimalDiseaseUpdateMRS:
             self.df_beta.rename(columns = {"Disease": "phenotype", "NCBI name": "ncbi_name", "MIrROR name": "microbiome", "Health sign": "beta", "subtract": "microbiome_subtract"}, inplace=True)
             self.df_beta = self.df_beta[["phenotype", "ncbi_name", "microbiome", "beta", "microbiome_subtract"]]
             self.df_beta['beta'] = self.df_beta['beta'].replace({'유해': 1, '유익': -1})    
-
-            self.df_dysbiosis.rename(columns = {"NCBI name": "ncbi_name", "MIrROR name": "microbiome", "Health sign": "beta", "subtract": "microbiome_subtract"}, inplace=True)
-            self.df_dysbiosis = self.df_dysbiosis[["ncbi_name", "microbiome", "beta", "microbiome_subtract"]]
-            self.df_dysbiosis['beta'] = self.df_dysbiosis['beta'].replace({'유해': 1, '유익': -1})
-            
+        
         except Exception as e:
             print(str(e))
             rv = False
@@ -256,24 +249,24 @@ class CompAnimalDiseaseUpdateMRS:
         
         try: 
             self.df_mrs['Dysbiosis'] = 0
-            self.li_microbiome = list(dict.fromkeys(self.df_dysbiosis['microbiome']))
+            self.li_microbiome = list(dict.fromkeys(self.df_beta['microbiome']))
             
             for i in range(len(self.li_new_sample_name)):
                 dysbiosis = 0
                 
                 for j in range(len(self.li_microbiome)):
-                    condition_harmful = (self.df_dysbiosis.microbiome == self.li_microbiome[j]) & (self.df_dysbiosis.beta == 1) 
-                    condition_beneficial = (self.df_dysbiosis.microbiome == self.li_microbiome[j]) & (self.df_dysbiosis.beta == -1) 
+                    condition_harmful = (self.df_beta.microbiome == self.li_microbiome[j]) & (self.df_beta.beta == 1) 
+                    condition_beneficial = (self.df_beta.microbiome == self.li_microbiome[j]) & (self.df_beta.beta == -1) 
                     
-                    if (len(self.df_dysbiosis[condition_harmful]) >= 1) & (len(self.df_dysbiosis[condition_beneficial]) == 0):
+                    if (len(self.df_beta[condition_harmful]) >= 1) & (len(self.df_beta[condition_beneficial]) == 0):
                         condition_micro = (self.df_exp.taxa == self.li_microbiome[j])
                         abundance = 0
 
                         if (len(self.df_exp[condition_micro]) > 0):      
                             abundance += self.df_exp[condition_micro][self.li_new_sample_name[i]].values[0]    
                             li_micro_sub = []
-                            if pd.isna(self.df_dysbiosis[condition_harmful]['microbiome_subtract'].values[0]) is False:
-                                li_micro_sub = self.df_dysbiosis[condition_harmful]['microbiome_subtract'].values[0].split('\n')
+                            if pd.isna(self.df_beta[condition_harmful]['microbiome_subtract'].values[0]) is False:
+                                li_micro_sub = self.df_beta[condition_harmful]['microbiome_subtract'].values[0].split('\n')
 
                                 for micro_sub in li_micro_sub:
                                     condition_sub = (self.df_exp.taxa == micro_sub)
@@ -283,15 +276,15 @@ class CompAnimalDiseaseUpdateMRS:
                                         
                             dysbiosis += math.log10(100*abundance + 1)            
                             
-                    elif (len(self.df_dysbiosis[condition_harmful]) == 0) & (len(self.df_dysbiosis[condition_beneficial]) >= 1):
+                    elif (len(self.df_beta[condition_harmful]) == 0) & (len(self.df_beta[condition_beneficial]) >= 1):
                         condition_micro = (self.df_exp.taxa == self.li_microbiome[j])
                         abundance = 0
 
                         if (len(self.df_exp[condition_micro]) > 0):      
                             abundance += self.df_exp[condition_micro][self.li_new_sample_name[i]].values[0]  
                             li_micro_sub = []
-                            if pd.isna(self.df_dysbiosis[condition_beneficial]['microbiome_subtract'].values[0]) is False:
-                                li_micro_sub = self.df_dysbiosis[condition_beneficial]['microbiome_subtract'].values[0].split('\n')                     
+                            if pd.isna(self.df_beta[condition_beneficial]['microbiome_subtract'].values[0]) is False:
+                                li_micro_sub = self.df_beta[condition_beneficial]['microbiome_subtract'].values[0].split('\n')                     
                                 
                                 for micro_sub in li_micro_sub:
                                     condition_sub = (self.df_exp.taxa == micro_sub)
@@ -302,7 +295,7 @@ class CompAnimalDiseaseUpdateMRS:
                             dysbiosis -= math.log10(100*abundance + 1)      
                             
                 self.df_mrs.loc[self.li_new_sample_name[i], 'Dysbiosis'] = -dysbiosis
-                         
+                 
         except Exception as e:
             print(str(e))
             rv = False
