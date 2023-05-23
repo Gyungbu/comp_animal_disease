@@ -200,7 +200,7 @@ class CompAnimalDisease:
             print(str(e))
             rv = False
             rvmsg = str(e)
-            print("Error has occurred in the CalculateMRS process")
+            print(f"Error has occurred in the {myNAME} process")    
     
         return rv, rvmsg
 
@@ -271,7 +271,7 @@ class CompAnimalDisease:
             print(str(e))
             rv = False
             rvmsg = str(e)
-            print("Error has occurred in the CalculateDysbiosis process")
+            print(f"Error has occurred in the {myNAME} process")    
     
         return rv, rvmsg
      
@@ -351,7 +351,7 @@ class CompAnimalDisease:
             print(str(e))
             rv = False
             rvmsg = str(e)
-            print("Error has occurred in the CalculateHealthyDistance process")
+            print(f"Error has occurred in the {myNAME} process")    
             sys.exit()
     
         return rv, rvmsg    
@@ -397,7 +397,7 @@ class CompAnimalDisease:
             print(str(e))
             rv = False
             rvmsg = str(e)
-            print("Error has occurred in the CalculatePercentileRank process")
+            print(f"Error has occurred in the {myNAME} process")    
             sys.exit()
     
         return rv, rvmsg
@@ -475,7 +475,7 @@ class CompAnimalDisease:
             print(str(e))
             rv = False
             rvmsg = str(e)
-            print("Error has occurred in the DrawScatterPlot process")
+            print(f"Error has occurred in the {myNAME} process")    
             sys.exit()
     
         return rv, rvmsg    
@@ -531,7 +531,7 @@ class CompAnimalDisease:
             print(str(e))
             rv = False
             rvmsg = str(e)
-            print("Error has occurred in the EvaluatePercentileRank process")
+            print(f"Error has occurred in the {myNAME} process")    
             sys.exit()
     
         return rv, rvmsg    
@@ -607,7 +607,7 @@ class CompAnimalDisease:
             print(str(e))
             rv = False
             rvmsg = str(e)
-            print("Error has occurred in the CalculateMicrobiomeRatio process")    
+            print(f"Error has occurred in the {myNAME} process")    
 ####################################
 # main
 ####################################
