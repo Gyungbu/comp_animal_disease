@@ -1,7 +1,3 @@
-##<Usage: python Script.py {path_exp}>
-### ex) python comp_percentile_rank.py "/home/kbkim/comp_animal_disease/input/mirror_output_dog_1340.csv" 
-### ex) python comp_percentile_rank.py "/home/kbkim/comp_animal_disease/input/mirror_output_cat_1409.csv"
-
 import os, datetime
 import pandas as pd
 from scipy.stats import percentileofscore, pearsonr
@@ -12,9 +8,6 @@ import numpy as np
 import seaborn as sns
 import scipy
 from skbio.stats.composition import multiplicative_replacement, clr
-
-# path_exp : Path of Merged Proportion file to analyze
-#path_exp = sys.argv[1] 
 
 #-------------------------------------------------------
 # Common Function
@@ -148,6 +141,7 @@ class CompAnimalDisease:
             print(str(e))
             rv = False
             rvmsg = str(e)
+            print(f"Error has occurred in the {myNAME} process")    
             
         return rv, rvmsg
 
@@ -344,12 +338,6 @@ class CompAnimalDisease:
                 
                 self.df_mrs.loc[self.li_new_sample_name[idx], 'HealthyDistance'] = -healthy_dist
             
-            #print(self.df_mrs_db['Dysbiosis'].std(skipna=False))
-            #print(self.df_mrs_db['Dysbiosis'].mean(skipna=False))
-            
-            # Calculate the TotalScore            
-            #self.df_mrs['TotalScore'] = self.df_mrs['Dysbiosis'] + self.df_mrs['HealthyDistance'] + self.df_mrs['Diversity']
- 
         except Exception as e:
             print(str(e))
             rv = False
@@ -391,7 +379,7 @@ class CompAnimalDisease:
                 self.df_percentile_rank.loc[self.df_percentile_rank[self.li_phenotype[i]]>=95, self.li_phenotype[i]] = 95.0      
                 
             self.df_percentile_rank['TotalScore'] = (self.df_percentile_rank['Dysbiosis']*1.1 + self.df_percentile_rank['HealthyDistance']*1.1 + self.df_percentile_rank['Diversity']*0.8)/3
-            
+                        
             # Replace missing values with the string 'None'    
             self.df_percentile_rank = self.df_percentile_rank.fillna('None')
 
@@ -425,45 +413,45 @@ class CompAnimalDisease:
         try:  
             
             #create regplot
-            p = sns.regplot(data=self.df_percentile_rank_db, x=self.df_percentile_rank_db['Diversity']*0.8, y=(self.df_percentile_rank_db['Dysbiosis']*1.1 + self.df_percentile_rank_db['HealthyDistance']*1.1)/2)
+            p = sns.regplot(data=self.df_percentile_rank_db, x=self.df_percentile_rank_db['Diversity'], y=(self.df_percentile_rank_db['Dysbiosis'] + self.df_percentile_rank_db['HealthyDistance'])/2)
 
             #calculate slope and intercept of regression equation
             slope, intercept, r, p, sterr = scipy.stats.linregress(x=p.get_lines()[0].get_xdata(),
                                                                    y=p.get_lines()[0].get_ydata())
 
             # generate x and y values for the line
-            x_vals = np.linspace(start=(self.df_percentile_rank_db['Diversity']*0.8).min(), stop=(self.df_percentile_rank_db['Diversity']*0.8).max(), num=100)
+            x_vals = np.linspace(start=self.df_percentile_rank_db['Diversity'].min(), stop=self.df_percentile_rank_db['Diversity'].max(), num=100)
             y_vals = intercept + slope * x_vals                   
             
-            sns.scatterplot(x=self.df_percentile_rank_db['Diversity']*0.8, y=(self.df_percentile_rank_db['Dysbiosis']*1.1 + self.df_percentile_rank_db['HealthyDistance']*1.1)/2, hue = self.df_percentile_rank_db['TotalScore'] , data=self.df_percentile_rank_db)
+            sns.scatterplot(x=self.df_percentile_rank_db['Diversity'], y=(self.df_percentile_rank_db['Dysbiosis'] + self.df_percentile_rank_db['HealthyDistance'])/2, hue = self.df_percentile_rank_db['TotalScore'] , data=self.df_percentile_rank_db)
             
             # add new points to the scatter plot
-            sns.scatterplot(x=self.df_percentile_rank['Diversity']*0.8, y=(self.df_percentile_rank['Dysbiosis']*1.1 + self.df_percentile_rank['HealthyDistance']*1.1)/2, data=self.df_percentile_rank, color='g')            
+            sns.scatterplot(x=self.df_percentile_rank['Diversity'], y=(self.df_percentile_rank['Dysbiosis'] + self.df_percentile_rank['HealthyDistance'])/2, data=self.df_percentile_rank, color='g')            
             
             plt.plot(x_vals, y_vals, '--', color='lightgray', label=f'y = {slope:.2f}x + {intercept:.2f}')
             plt.xlabel('POS_Diversity')
-            plt.ylabel('(POS_Dysbiosis+POS_HealthyDistance)/2')
+            plt.ylabel('(POS_Dysbiosis + POS_HealthyDistance)/2')
             plt.legend()
                                  
-            plt.axhline(y=60, xmin=0, xmax=1, color='red', linestyle='--')    
-            plt.axvline(x=60, ymin=0, ymax=1, color='red', linestyle='--')
+            plt.axhline(y=60/1.1, xmin=0, xmax=1, color='red', linestyle='--')    
+            plt.axvline(x=60/0.8, ymin=0, ymax=1, color='red', linestyle='--')
             
             
-            E_data = self.df_percentile_rank_db[(self.df_percentile_rank_db['Diversity']*0.8 >= 60) & ((self.df_percentile_rank_db['Dysbiosis']*1.1 + self.df_percentile_rank_db['HealthyDistance']*1.1)/2 >= 60)]
-            B_data = self.df_percentile_rank_db[(self.df_percentile_rank_db['Diversity']*0.8 < 60) & ((self.df_percentile_rank_db['Dysbiosis']*1.1 + self.df_percentile_rank_db['HealthyDistance']*1.1)/2 >= 60)]
-            D_data = self.df_percentile_rank_db[(self.df_percentile_rank_db['Diversity']*0.8 < 60) & ((self.df_percentile_rank_db['Dysbiosis']*1.1 + self.df_percentile_rank_db['HealthyDistance']*1.1)/2 < 60)]
-            I_data = self.df_percentile_rank_db[(self.df_percentile_rank_db['Diversity']*0.8 >= 60) & ((self.df_percentile_rank_db['Dysbiosis']*1.1 + self.df_percentile_rank_db['HealthyDistance']*1.1)/2 < 60)]
+            E_data = self.df_percentile_rank_db[(self.df_percentile_rank_db['Diversity'] >= 60/0.8) & ((self.df_percentile_rank_db['Dysbiosis'] + self.df_percentile_rank_db['HealthyDistance'])/2 >= 60/1.1)]
+            B_data = self.df_percentile_rank_db[(self.df_percentile_rank_db['Diversity'] < 60/0.8) & ((self.df_percentile_rank_db['Dysbiosis'] + self.df_percentile_rank_db['HealthyDistance'])/2 >= 60/1.1)]
+            D_data = self.df_percentile_rank_db[(self.df_percentile_rank_db['Diversity'] < 60/0.8) & ((self.df_percentile_rank_db['Dysbiosis'] + self.df_percentile_rank_db['HealthyDistance'])/2 < 60/1.1)]
+            I_data = self.df_percentile_rank_db[(self.df_percentile_rank_db['Diversity'] >= 60/0.8) & ((self.df_percentile_rank_db['Dysbiosis'] + self.df_percentile_rank_db['HealthyDistance'])/2 < 60/1.1)]
 
-            E_percent = len(E_data) / len(self.df_percentile_rank_db)
-            B_percent = len(B_data) / len(self.df_percentile_rank_db)
-            D_percent = len(D_data) / len(self.df_percentile_rank_db)
-            I_percent = len(I_data) / len(self.df_percentile_rank_db)
+            E_percent = len(E_data) / len(self.df_percentile_rank_db) * 100
+            B_percent = len(B_data) / len(self.df_percentile_rank_db) * 100
+            D_percent = len(D_data) / len(self.df_percentile_rank_db) * 100
+            I_percent = len(I_data) / len(self.df_percentile_rank_db) * 100
             
             print(f"<{self.species}>")
-            print("Percentage of samples in E: ", 100*E_percent, '%')
-            print("Percentage of samples in B: ", 100*B_percent, '%') 
-            print("Percentage of samples in D: ", 100*D_percent, '%')
-            print("Percentage of samples in I: ", 100*I_percent, '%')  
+            print("Percentage of samples in E: ", E_percent, '%')
+            print("Percentage of samples in B: ", B_percent, '%') 
+            print("Percentage of samples in D: ", D_percent, '%')
+            print("Percentage of samples in I: ", I_percent, '%')  
             
             
             # save the scatter plot
@@ -511,19 +499,14 @@ class CompAnimalDisease:
 
             # Type E, B, I, D
             conditions = [
-                (self.df_percentile_rank['Diversity']*0.8 >= 60) & ((self.df_percentile_rank['Dysbiosis']*1.1 + self.df_percentile_rank['HealthyDistance']*1.1)/2 >= 60),
-                (self.df_percentile_rank['Diversity']*0.8 < 60) & ((self.df_percentile_rank['Dysbiosis']*1.1 + self.df_percentile_rank['HealthyDistance']*1.1)/2 >= 60),
-                (self.df_percentile_rank['Diversity']*0.8 >= 60) & ((self.df_percentile_rank['Dysbiosis']*1.1 + self.df_percentile_rank['HealthyDistance']*1.1)/2 < 60),
-                (self.df_percentile_rank['Diversity']*0.8 < 60) & ((self.df_percentile_rank['Dysbiosis']*1.1 + self.df_percentile_rank['HealthyDistance']*1.1)/2 < 60)
+                (self.df_percentile_rank['Diversity'] >= 60/0.8) & ((self.df_percentile_rank['Dysbiosis'] + self.df_percentile_rank['HealthyDistance'])/2 >= 60/1.1),
+                (self.df_percentile_rank['Diversity'] < 60/0.8) & ((self.df_percentile_rank['Dysbiosis'] + self.df_percentile_rank['HealthyDistance'])/2 >= 60/1.1),
+                (self.df_percentile_rank['Diversity'] >= 60/0.8) & ((self.df_percentile_rank['Dysbiosis'] + self.df_percentile_rank['HealthyDistance'])/2 < 60/1.1),
+                (self.df_percentile_rank['Diversity'] < 60/0.8) & ((self.df_percentile_rank['Dysbiosis'] + self.df_percentile_rank['HealthyDistance'])/2 < 60/1.1)
             ]
             values = ['E', 'B', 'I', 'D']
 
             self.df_eval['Type'] = np.select(conditions, values)
-
-            # Save the output file - df_eval
-            #self.df_eval.to_csv(self.path_comp_eval_output, encoding="utf-8-sig", index_label='serial_number')
-            
-            print('Analysis Complete')  
             
         except Exception as e:
             print(str(e))
@@ -595,17 +578,21 @@ class CompAnimalDisease:
                                         
                             beneficial_abundance += abundance   
                             
-                self.df_eval.loc[self.li_new_sample_name[i], 'harmful_ratio'] = harmful_abundance * 100
-                self.df_eval.loc[self.li_new_sample_name[i], 'beneficial_ratio'] = beneficial_abundance * 100
+                self.df_eval.loc[self.li_new_sample_name[i], 'harmful_abundance'] = harmful_abundance * 100
+                self.df_eval.loc[self.li_new_sample_name[i], 'beneficial_abundance'] = beneficial_abundance * 100
             
             # Save the output file - df_eval
             self.df_eval.to_csv(self.path_comp_eval_output, encoding="utf-8-sig", index_label='serial_number')
-                
+                    
         except Exception as e:
             print(str(e))
             rv = False
             rvmsg = str(e)
             print(f"Error has occurred in the {myNAME} process")    
+            sys.exit()
+            
+        return rv, rvmsg  
+            
 ####################################
 # main
 ####################################
@@ -614,8 +601,8 @@ if __name__ == '__main__':
     #path_exp = 'input/PDmirror_output_dog_1629.csv'
     #path_exp = 'input/PCmirror_output_cat_1520.csv'
     
-    #path_exp = 'input/PD_dog_one_sample.csv'
-    path_exp = 'input/PC_cat_one_sample.csv'
+    path_exp = 'input/PD_dog_one_sample.csv'
+    #path_exp = 'input/PC_cat_one_sample.csv'
     
     companimal = CompAnimalDisease(path_exp)
     companimal.ReadDB()
@@ -626,4 +613,6 @@ if __name__ == '__main__':
     companimal.DrawScatterPlot()    
     companimal.EvaluatePercentileRank()    
     companimal.CalculateMicrobiomeRatio()
+    
+    print('Analysis Complete')
     

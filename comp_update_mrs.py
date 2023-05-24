@@ -54,7 +54,7 @@ def save_histograms_to_file(df, filename):
         axs[i].set_title(df.columns.to_list()[i])
     
     plt.tight_layout()
-    plt.savefig(filename)
+    plt.savefig(filename, dpi=300)
     
 ###################################
 # MainClass
@@ -241,6 +241,7 @@ class CompAnimalDiseaseUpdateMRS:
             rv = False
             rvmsg = str(e)
             print(f"Error has occurred in the {myNAME} process")    
+            sys.exit() 
     
         return rv, rvmsg   
 
@@ -312,6 +313,7 @@ class CompAnimalDiseaseUpdateMRS:
             rv = False
             rvmsg = str(e)
             print(f"Error has occurred in the {myNAME} process")    
+            sys.exit() 
     
         return rv, rvmsg        
 
@@ -380,10 +382,7 @@ class CompAnimalDiseaseUpdateMRS:
                 healthy_dist = np.linalg.norm(np_abundance - np_healthy_abundance)  
                 
                 self.df_mrs.loc[self.li_new_sample_name[idx], 'HealthyDistance'] = -healthy_dist
-            
-            # Calculate the TotalScore
-            #self.df_mrs['TotalScore'] = self.df_mrs['Dysbiosis'] + self.df_mrs['HealthyDistance'] + self.df_mrs['Diversity']
- 
+             
         except Exception as e:
             print(str(e))
             rv = False
@@ -425,7 +424,7 @@ class CompAnimalDiseaseUpdateMRS:
                 self.df_percentile_rank.loc[self.df_percentile_rank[self.li_phenotype[i]]>=95, self.li_phenotype[i]] = 95.0      
                 
             self.df_percentile_rank['TotalScore'] = (self.df_percentile_rank['Dysbiosis']*1.1 + self.df_percentile_rank['HealthyDistance']*1.1 + self.df_percentile_rank['Diversity']*0.8)/3
-            
+                       
             # Replace missing values with the string 'None'    
             self.df_percentile_rank = self.df_percentile_rank.fillna('None')
             
@@ -461,7 +460,6 @@ class CompAnimalDiseaseUpdateMRS:
    
             # Histogram Plot - mrs 
             save_histograms_to_file(self.df_mrs, self.path_hist)    
-            print('Update Complete') 
 
         except Exception as e:
             print(str(e))
@@ -485,3 +483,5 @@ if __name__ == '__main__':
     companimal.CalculateHealthyDistance()     
     companimal.CalculatePercentileRank() 
     companimal.UpdateMRS() 
+    
+    print('Update Complete') 
