@@ -54,7 +54,7 @@ def save_histograms_to_file(df, filename):
         axs[i].set_title(df.columns.to_list()[i])
     
     plt.tight_layout()
-    plt.savefig(filename, dpi=300)
+    plt.savefig(filename)
     
 ###################################
 # MainClass
