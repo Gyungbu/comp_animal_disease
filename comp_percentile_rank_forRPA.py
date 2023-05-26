@@ -62,7 +62,7 @@ class CompAnimalDisease:
         self.path_mrs_db = f"{curdir}/input/comp_mrs_db_{self.species}.xlsx"
         self.path_percentile_rank_db = f"{curdir}/input/comp_percentile_rank_db_{self.species}.csv"
         self.path_dysbiosis = f"{curdir}/input/dysbiosis_microbiome_{self.species}.xlsx"
-        
+        self.path_db = f"{curdir}/input/db_abundance_{self.species}.xlsx"
         
         ###output
         if( outdir is not None ):
@@ -85,6 +85,7 @@ class CompAnimalDisease:
         self.df_mrs_db = None
         self.df_dysbiosis = None
         self.df_percentile_rank_db = None
+        self.df_db = None
         
         self.df_mrs = None
         self.df_percentile_rank = None
@@ -115,6 +116,7 @@ class CompAnimalDisease:
             self.df_mrs_db = pd.read_excel(self.path_mrs_db, index_col=0) 
             self.df_exp = pd.read_csv(self.path_exp)
             self.df_percentile_rank_db = pd.read_csv(self.path_percentile_rank_db)
+            self.df_db = pd.read_excel(self.path_db)
 
             self.df_beta.rename(columns = {"Disease": "phenotype", "NCBI name": "ncbi_name", "MIrROR name": "microbiome", "Health sign": "beta", "subtract": "microbiome_subtract"}, inplace=True)
             self.df_beta = self.df_beta[["phenotype", "ncbi_name", "microbiome", "beta", "microbiome_subtract"]]
@@ -580,8 +582,82 @@ class CompAnimalDisease:
                                         
                             beneficial_abundance += abundance   
                             
-                self.df_eval.loc[self.li_new_sample_name[i], 'harmful_abundance'] = harmful_abundance * 100
-                self.df_eval.loc[self.li_new_sample_name[i], 'beneficial_abundance'] = beneficial_abundance * 100
+                self.df_eval.loc[self.li_new_sample_name[i], 'harmful_abundance[%]'] = harmful_abundance * 100
+                self.df_eval.loc[self.li_new_sample_name[i], 'beneficial_abundance[%]'] = beneficial_abundance * 100
+            
+            # Save the output file - df_eval
+            #self.df_eval.to_csv(self.path_comp_eval_output, encoding="utf-8-sig", index_label='serial_number')
+                    
+        except Exception as e:
+            print(str(e))
+            rv = False
+            rvmsg = str(e)
+            print(f"Error has occurred in the {myNAME} process")    
+            sys.exit()
+            
+        return rv, rvmsg  
+
+    def CalculateAverageMicrobiomeRatio(self): 
+        """
+        Calculate the average Beneficial Microbiome Ratio & Harmful Microbiome Ratio
+
+        Returns:
+        A tuple (success, message), where success is a boolean indicating whether the operation was successful,
+        and message is a string containing a success or error message.
+        """         
+        myNAME = self.__class__.__name__+"::"+sys._getframe().f_code.co_name
+        WriteLog(myNAME, "In", type='INFO', fplog=self.__fplog)
+        
+        rv = True
+        rvmsg = "Success"
+        
+        try: 
+
+            harmful_mean_abundance = 0
+            beneficial_mean_abundance = 0
+
+            for j in range(len(self.li_microbiome)):
+                condition_harmful = (self.df_dysbiosis.microbiome == self.li_microbiome[j]) & (self.df_dysbiosis.beta == 1) 
+                condition_beneficial = (self.df_dysbiosis.microbiome == self.li_microbiome[j]) & (self.df_dysbiosis.beta == -1) 
+
+                if (len(self.df_dysbiosis[condition_harmful]) >= 1) & (len(self.df_dysbiosis[condition_beneficial]) == 0):
+                    condition_micro = (self.df_db.taxa == self.li_microbiome[j])
+                    abundance_mean = 0
+
+                    if (len(self.df_db[condition_micro]) > 0):      
+                        abundance_mean += self.df_db[condition_micro].mean(axis=1, numeric_only=True).values[0]      
+                        li_micro_sub = []
+                        if pd.isna(self.df_dysbiosis[condition_harmful]['microbiome_subtract'].values[0]) is False:
+                            li_micro_sub = self.df_dysbiosis[condition_harmful]['microbiome_subtract'].values[0].split('\n')
+
+                            for micro_sub in li_micro_sub:
+                                condition_sub = (self.df_db.taxa == micro_sub)
+
+                                if len(self.df_db[condition_sub]) > 0:
+                                    abundance_mean -= self.df_db[condition_sub].mean(axis=1, numeric_only=True).values[0]       
+
+                        harmful_mean_abundance += abundance_mean       
+
+                elif (len(self.df_dysbiosis[condition_harmful]) == 0) & (len(self.df_dysbiosis[condition_beneficial]) >= 1):
+                    condition_micro = (self.df_db.taxa == self.li_microbiome[j])
+                    abundance_mean = 0
+
+                    if (len(self.df_db[condition_micro]) > 0):      
+                        abundance_mean += self.df_db[condition_micro].mean(axis=1, numeric_only=True).values[0]     
+                        li_micro_sub = []
+                        if pd.isna(self.df_dysbiosis[condition_beneficial]['microbiome_subtract'].values[0]) is False:
+                            li_micro_sub = self.df_dysbiosis[condition_beneficial]['microbiome_subtract'].values[0].split('\n')                     
+
+                            for micro_sub in li_micro_sub:
+                                condition_sub = (self.df_db.taxa == micro_sub)
+
+                                if len(self.df_db[condition_sub]) > 0:
+                                    abundance_mean -= self.df_db[condition_sub].mean(axis=1, numeric_only=True).values[0]     
+
+                        beneficial_mean_abundance += abundance_mean   
+
+            self.df_eval.loc[:,'harmful_mean_abundance[%]'] = harmful_mean_abundance * 100
+            self.df_eval.loc[:,'beneficial_mean_abundance[%]'] = beneficial_mean_abundance * 100
             
             # Save the output file - df_eval
             self.df_eval.to_csv(self.path_comp_eval_output, encoding="utf-8-sig", index_label='serial_number')
@@ -593,8 +669,7 @@ class CompAnimalDisease:
             print(f"Error has occurred in the {myNAME} process")    
             sys.exit()
             
-        return rv, rvmsg  
-            
+        return rv, rvmsg      
 ####################################
 # main
 ####################################
@@ -615,6 +690,7 @@ if __name__ == '__main__':
     companimal.DrawScatterPlot()    
     companimal.EvaluatePercentileRank()    
     companimal.CalculateMicrobiomeRatio()
+    companimal.CalculateAverageMicrobiomeRatio()
     
     print('Analysis Complete')
     
