@@ -95,8 +95,6 @@ class CompAnimalDisease:
         self.li_new_sample_name = None
         self.li_phenotype = None
         self.li_microbiome = None
-        self.li_x_quartile = None
-        self.li_y_quartile = None
 
     # Load the DB file
     # df_beta : Data frame of of Phenotype-Microbiome information
@@ -440,7 +438,7 @@ class CompAnimalDisease:
             plt.axhline(y=60/1.1, xmin=0, xmax=1, color='red', linestyle='--')    
             plt.axvline(x=60/0.8, ymin=0, ymax=1, color='red', linestyle='--')
             
-            
+            '''
             E_data = self.df_percentile_rank_db[(self.df_percentile_rank_db['Diversity'] >= 60/0.8) & ((self.df_percentile_rank_db['Dysbiosis'] + self.df_percentile_rank_db['HealthyDistance'])/2 >= 60/1.1)]
             B_data = self.df_percentile_rank_db[(self.df_percentile_rank_db['Diversity'] < 60/0.8) & ((self.df_percentile_rank_db['Dysbiosis'] + self.df_percentile_rank_db['HealthyDistance'])/2 >= 60/1.1)]
             D_data = self.df_percentile_rank_db[(self.df_percentile_rank_db['Diversity'] < 60/0.8) & ((self.df_percentile_rank_db['Dysbiosis'] + self.df_percentile_rank_db['HealthyDistance'])/2 < 60/1.1)]
@@ -456,7 +454,7 @@ class CompAnimalDisease:
             print("Percentage of samples in B: ", B_percent, '%') 
             print("Percentage of samples in D: ", D_percent, '%')
             print("Percentage of samples in I: ", I_percent, '%')  
-            
+            '''
             
             # save the scatter plot
             plt.savefig(self.path_comp_scatterplot_output , dpi=300, bbox_inches='tight')          
@@ -584,10 +582,7 @@ class CompAnimalDisease:
                             
                 self.df_eval.loc[self.li_new_sample_name[i], 'harmful_abundance[%]'] = harmful_abundance * 100
                 self.df_eval.loc[self.li_new_sample_name[i], 'beneficial_abundance[%]'] = beneficial_abundance * 100
-            
-            # Save the output file - df_eval
-            #self.df_eval.to_csv(self.path_comp_eval_output, encoding="utf-8-sig", index_label='serial_number')
-                    
+                              
         except Exception as e:
             print(str(e))
             rv = False
@@ -670,6 +665,7 @@ class CompAnimalDisease:
             sys.exit()
             
         return rv, rvmsg      
+    
 ####################################
 # main
 ####################################
