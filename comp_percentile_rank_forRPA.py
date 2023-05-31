@@ -413,7 +413,7 @@ class CompAnimalDisease:
         rvmsg = "Success"
         
         try:  
-            
+            '''
             #create regplot
             p = sns.regplot(data=self.df_percentile_rank_db, x=self.df_percentile_rank_db['Diversity'], y=(self.df_percentile_rank_db['Dysbiosis'] + self.df_percentile_rank_db['HealthyDistance'])/2)
 
@@ -424,21 +424,21 @@ class CompAnimalDisease:
             # generate x and y values for the line
             x_vals = np.linspace(start=self.df_percentile_rank_db['Diversity'].min(), stop=self.df_percentile_rank_db['Diversity'].max(), num=100)
             y_vals = intercept + slope * x_vals                   
-            
+            '''
             sns.scatterplot(x=self.df_percentile_rank_db['Diversity'], y=(self.df_percentile_rank_db['Dysbiosis'] + self.df_percentile_rank_db['HealthyDistance'])/2, hue = self.df_percentile_rank_db['TotalScore'] , data=self.df_percentile_rank_db)
             
             # add new points to the scatter plot
             sns.scatterplot(x=self.df_percentile_rank['Diversity'], y=(self.df_percentile_rank['Dysbiosis'] + self.df_percentile_rank['HealthyDistance'])/2, data=self.df_percentile_rank, color='g')            
             
-            plt.plot(x_vals, y_vals, '--', color='lightgray', label=f'y = {slope:.2f}x + {intercept:.2f}')
-            plt.xlabel('POS_Diversity')
-            plt.ylabel('(POS_Dysbiosis + POS_HealthyDistance)/2')
+            #plt.plot(x_vals, y_vals, '--', color='lightgray', label=f'y = {slope:.2f}x + {intercept:.2f}')
+            plt.xlabel('DiversityScore')
+            plt.ylabel('avg(DysbiosisScore+HealthSimilarityScore)')
             plt.legend()
                                  
             plt.axhline(y=60/1.1, xmin=0, xmax=1, color='red', linestyle='--')    
             plt.axvline(x=60/0.8, ymin=0, ymax=1, color='red', linestyle='--')
             
-            '''
+            
             E_data = self.df_percentile_rank_db[(self.df_percentile_rank_db['Diversity'] >= 60/0.8) & ((self.df_percentile_rank_db['Dysbiosis'] + self.df_percentile_rank_db['HealthyDistance'])/2 >= 60/1.1)]
             B_data = self.df_percentile_rank_db[(self.df_percentile_rank_db['Diversity'] < 60/0.8) & ((self.df_percentile_rank_db['Dysbiosis'] + self.df_percentile_rank_db['HealthyDistance'])/2 >= 60/1.1)]
             D_data = self.df_percentile_rank_db[(self.df_percentile_rank_db['Diversity'] < 60/0.8) & ((self.df_percentile_rank_db['Dysbiosis'] + self.df_percentile_rank_db['HealthyDistance'])/2 < 60/1.1)]
@@ -454,7 +454,7 @@ class CompAnimalDisease:
             print("Percentage of samples in B: ", B_percent, '%') 
             print("Percentage of samples in D: ", D_percent, '%')
             print("Percentage of samples in I: ", I_percent, '%')  
-            '''
+            
             
             # save the scatter plot
             plt.savefig(self.path_comp_scatterplot_output , dpi=300, bbox_inches='tight')          
@@ -674,8 +674,8 @@ if __name__ == '__main__':
     #path_exp = 'input/PDmirror_output_dog_1629.csv'
     #path_exp = 'input/PCmirror_output_cat_1520.csv'
     
-    path_exp = 'input/PD_dog_one_sample.csv'
-    #path_exp = 'input/PC_cat_one_sample.csv'
+    #path_exp = 'input/PD_dog_one_sample.csv'
+    path_exp = 'input/PC_cat_one_sample.csv'
     
     companimal = CompAnimalDisease(path_exp)
     companimal.ReadDB()
