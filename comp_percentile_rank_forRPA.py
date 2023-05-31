@@ -432,7 +432,7 @@ class CompAnimalDisease:
             
             #plt.plot(x_vals, y_vals, '--', color='lightgray', label=f'y = {slope:.2f}x + {intercept:.2f}')
             plt.xlabel('DiversityScore')
-            plt.ylabel('avg(DysbiosisScore+HealthSimilarityScore)')
+            plt.ylabel('avg(DysbiosisScore, HealthSimilarityScore)')
             plt.legend()
                                  
             plt.axhline(y=60/1.1, xmin=0, xmax=1, color='red', linestyle='--')    
@@ -674,8 +674,8 @@ if __name__ == '__main__':
     #path_exp = 'input/PDmirror_output_dog_1629.csv'
     #path_exp = 'input/PCmirror_output_cat_1520.csv'
     
-    #path_exp = 'input/PD_dog_one_sample.csv'
-    path_exp = 'input/PC_cat_one_sample.csv'
+    path_exp = 'input/PD_dog_one_sample.csv'
+    #path_exp = 'input/PC_cat_one_sample.csv'
     
     companimal = CompAnimalDisease(path_exp)
     companimal.ReadDB()
