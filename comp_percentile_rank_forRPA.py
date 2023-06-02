@@ -126,9 +126,10 @@ class CompAnimalDisease:
             
             print(self.df_exp)
             # Delete the diversity, observed rows
-            if (list(self.df_exp['taxa'][0:2]) == ['diversity', 'observed']):
+            if (list(self.df_exp['taxa'][0:2]) == ['diversity', 'observed']) & (list(self.df_db['taxa'][0:2]) == ['diversity', 'observed']):
                 self.li_diversity = list(self.df_exp.iloc[0,1:]) # li_diversity : Alpha-Diversity list 
                 self.df_exp = self.df_exp.iloc[2:,:]
+                self.df_db = self.df_db.iloc[2:,:]
                             
             # li_new_sample_name : Sample name list 
             # li_phenotype : Phenotype list 
@@ -438,7 +439,7 @@ class CompAnimalDisease:
             plt.axhline(y=60/1.1, xmin=0, xmax=1, color='red', linestyle='--')    
             plt.axvline(x=60/0.8, ymin=0, ymax=1, color='red', linestyle='--')
             
-            
+            '''
             E_data = self.df_percentile_rank_db[(self.df_percentile_rank_db['Diversity'] >= 60/0.8) & ((self.df_percentile_rank_db['Dysbiosis'] + self.df_percentile_rank_db['HealthyDistance'])/2 >= 60/1.1)]
             B_data = self.df_percentile_rank_db[(self.df_percentile_rank_db['Diversity'] < 60/0.8) & ((self.df_percentile_rank_db['Dysbiosis'] + self.df_percentile_rank_db['HealthyDistance'])/2 >= 60/1.1)]
             D_data = self.df_percentile_rank_db[(self.df_percentile_rank_db['Diversity'] < 60/0.8) & ((self.df_percentile_rank_db['Dysbiosis'] + self.df_percentile_rank_db['HealthyDistance'])/2 < 60/1.1)]
@@ -454,7 +455,7 @@ class CompAnimalDisease:
             print("Percentage of samples in B: ", B_percent, '%') 
             print("Percentage of samples in D: ", D_percent, '%')
             print("Percentage of samples in I: ", I_percent, '%')  
-            
+            '''
             
             # save the scatter plot
             plt.savefig(self.path_comp_scatterplot_output , dpi=300, bbox_inches='tight')          
