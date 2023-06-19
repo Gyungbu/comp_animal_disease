@@ -92,6 +92,7 @@ class CompAnimalDisease:
         self.df_eval = None
         
         self.li_diversity = None
+        self.li_observed = None
         self.li_new_sample_name = None
         self.li_phenotype = None
         self.li_microbiome = None
@@ -128,7 +129,7 @@ class CompAnimalDisease:
             # Delete the diversity, observed rows
             if (list(self.df_exp['taxa'][0:2]) == ['diversity', 'observed']) & (list(self.df_db['taxa'][0:2]) == ['diversity', 'observed']):
                 self.li_diversity = list(self.df_exp.iloc[0,1:]) # li_diversity : Alpha-Diversity list 
-                self.df_exp = self.df_exp.iloc[2:,:]
+                self.li_observed = list(self.df_exp.iloc[1,1:]) # li_observed : Number of Microbiome list
                 self.df_db = self.df_db.iloc[2:,:]
                             
             # li_new_sample_name : Sample name list 
@@ -541,6 +542,9 @@ class CompAnimalDisease:
                 harmful_abundance = 0
                 beneficial_abundance = 0
                 
+                harmful_number = 0
+                beneficial_number = 0
+                
                 for j in range(len(self.li_microbiome)):
                     condition_harmful = (self.df_dysbiosis.microbiome == self.li_microbiome[j]) & (self.df_dysbiosis.beta == 1) 
                     condition_beneficial = (self.df_dysbiosis.microbiome == self.li_microbiome[j]) & (self.df_dysbiosis.beta == -1) 
@@ -561,7 +565,10 @@ class CompAnimalDisease:
                                     if len(self.df_exp[condition_sub]) > 0:
                                         abundance -= self.df_exp[condition_sub][self.li_new_sample_name[i]].values[0]                                  
                                         
-                            harmful_abundance += abundance       
+                        harmful_abundance += abundance  
+
+                        if abundance > 0:
+                            harmful_number += 1
                             
                     elif (len(self.df_dysbiosis[condition_harmful]) == 0) & (len(self.df_dysbiosis[condition_beneficial]) >= 1):
                         condition_micro = (self.df_exp.taxa == self.li_microbiome[j])
@@ -579,10 +586,20 @@ class CompAnimalDisease:
                                     if len(self.df_exp[condition_sub]) > 0:
                                         abundance -= self.df_exp[condition_sub][self.li_new_sample_name[i]].values[0]       
                                         
-                            beneficial_abundance += abundance   
+                        beneficial_abundance += abundance   
+
+                        if abundance > 0:
+                            beneficial_number += 1
                             
                 self.df_eval.loc[self.li_new_sample_name[i], 'harmful_abundance[%]'] = harmful_abundance * 100
                 self.df_eval.loc[self.li_new_sample_name[i], 'beneficial_abundance[%]'] = beneficial_abundance * 100
+                self.df_eval.loc[self.li_new_sample_name[i], 'percentage_of_other'] = 100 - 100 * (harmful_abundance + beneficial_abundance)
+                
+                self.df_eval.loc[self.li_new_sample_name[i], 'cell_count_of_bad_bacteria'] = harmful_number
+                self.df_eval.loc[self.li_new_sample_name[i], 'cell_count_of_good_bacteria'] = beneficial_number
+
+                self.df_eval.loc[self.li_new_sample_name[i], 'number_of_bacteria_in_the_intestine'] = self.li_observed[i]
+                self.df_eval.loc[self.li_new_sample_name[i], 'cell_count_of_other'] = self.li_observed[i] - harmful_number - beneficial_number
                               
         except Exception as e:
             print(str(e))
@@ -675,8 +692,8 @@ if __name__ == '__main__':
     #path_exp = 'input/PDmirror_output_dog_1629.csv'
     #path_exp = 'input/PCmirror_output_cat_1520.csv'
     
-    path_exp = 'input/PD_dog_one_sample.csv'
-    #path_exp = 'input/PC_cat_one_sample.csv'
+    #path_exp = 'input/PD_dog_one_sample.csv'
+    path_exp = 'input/PC_cat_one_sample.csv'
     
     companimal = CompAnimalDisease(path_exp)
     companimal.ReadDB()
