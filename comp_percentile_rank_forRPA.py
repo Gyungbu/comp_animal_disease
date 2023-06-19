@@ -130,6 +130,7 @@ class CompAnimalDisease:
             if (list(self.df_exp['taxa'][0:2]) == ['diversity', 'observed']) & (list(self.df_db['taxa'][0:2]) == ['diversity', 'observed']):
                 self.li_diversity = list(self.df_exp.iloc[0,1:]) # li_diversity : Alpha-Diversity list 
                 self.li_observed = list(self.df_exp.iloc[1,1:]) # li_observed : Number of Microbiome list
+                self.df_exp = self.df_exp.iloc[2:,:]
                 self.df_db = self.df_db.iloc[2:,:]
                             
             # li_new_sample_name : Sample name list 
@@ -692,8 +693,8 @@ if __name__ == '__main__':
     #path_exp = 'input/PDmirror_output_dog_1629.csv'
     #path_exp = 'input/PCmirror_output_cat_1520.csv'
     
-    #path_exp = 'input/PD_dog_one_sample.csv'
-    path_exp = 'input/PC_cat_one_sample.csv'
+    path_exp = 'input/PD_dog_one_sample.csv'
+    #path_exp = 'input/PC_cat_one_sample.csv'
     
     companimal = CompAnimalDisease(path_exp)
     companimal.ReadDB()
