@@ -1,6 +1,6 @@
 ##<Usage: python Script.py {path_exp}>
-### ex) python comp_update_mrs.py "/home/kbkim/comp_animal_disease/input/PDmirror_output_dog_1340.csv"
-### ex) python comp_update_mrs.py "/home/kbkim/comp_animal_disease/input/PCmirror_output_cat_1409.csv"
+### ex) python comp_update_mrs.py "/home/kbkim/comp_animal_disease/input/PDmirror_output_dog_1629.csv"
+### ex) python comp_update_mrs.py "/home/kbkim/comp_animal_disease/input/PCmirror_output_cat_1520.csv"
 
 import os, datetime
 import pandas as pd
