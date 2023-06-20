@@ -594,13 +594,13 @@ class CompAnimalDisease:
                             
                 self.df_eval.loc[self.li_new_sample_name[i], 'harmful_abundance[%]'] = harmful_abundance * 100
                 self.df_eval.loc[self.li_new_sample_name[i], 'beneficial_abundance[%]'] = beneficial_abundance * 100
-                self.df_eval.loc[self.li_new_sample_name[i], 'percentage_of_other'] = 100 - 100 * (harmful_abundance + beneficial_abundance)
+                self.df_eval.loc[self.li_new_sample_name[i], 'other_abundance[%]'] = 100 - 100 * (harmful_abundance + beneficial_abundance)
                 
-                self.df_eval.loc[self.li_new_sample_name[i], 'cell_count_of_bad_bacteria'] = harmful_number
-                self.df_eval.loc[self.li_new_sample_name[i], 'cell_count_of_good_bacteria'] = beneficial_number
+                self.df_eval.loc[self.li_new_sample_name[i], 'num_harmful_species'] = harmful_number
+                self.df_eval.loc[self.li_new_sample_name[i], 'num_beneficial_species'] = beneficial_number
 
-                self.df_eval.loc[self.li_new_sample_name[i], 'number_of_bacteria_in_the_intestine'] = self.li_observed[i]
-                self.df_eval.loc[self.li_new_sample_name[i], 'cell_count_of_other'] = self.li_observed[i] - harmful_number - beneficial_number
+                self.df_eval.loc[self.li_new_sample_name[i], 'num_total_species'] = self.li_observed[i]
+                self.df_eval.loc[self.li_new_sample_name[i], 'num_other_species'] = self.li_observed[i] - harmful_number - beneficial_number
                               
         except Exception as e:
             print(str(e))
@@ -693,8 +693,8 @@ if __name__ == '__main__':
     #path_exp = 'input/PDmirror_output_dog_1629.csv'
     #path_exp = 'input/PCmirror_output_cat_1520.csv'
     
-    #path_exp = 'input/PD_dog_one_sample.csv'
-    path_exp = 'input/PC_cat_one_sample.csv'
+    path_exp = 'input/PD_dog_one_sample.csv'
+    #path_exp = 'input/PC_cat_one_sample.csv'
     
     companimal = CompAnimalDisease(path_exp)
     companimal.ReadDB()
