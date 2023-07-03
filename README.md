@@ -31,10 +31,10 @@ Caveats:
 To run comp_update_mrs,
  
 Run the command below:
-
-  python ./comp_animal_disease/comp_update_mrs.py {path_exp}
-  ### ex) python comp_update_mrs.py "/home/kbkim/comp_animal_disease/input/PDmirror_output_dog_1629.csv"
-  ### ex) python comp_update_mrs.py "/home/kbkim/comp_animal_disease/input/PCmirror_output_cat_1520.csv"  
+  
+    python ./comp_animal_disease/comp_update_mrs.py {path_exp}
+    ### ex) python comp_update_mrs.py "/home/kbkim/comp_animal_disease/input/PDmirror_output_dog_1629.csv"
+    ### ex) python comp_update_mrs.py "/home/kbkim/comp_animal_disease/input/PCmirror_output_cat_1520.csv"  
    
     
     
@@ -59,7 +59,7 @@ To run comp_percentile_rank,
  
 Run the command below:
 
-  python ./comp_animal_disease/comp_percentile_rank_forRPA.py.py 
+    python ./comp_animal_disease/comp_percentile_rank_forRPA.py.py 
     
 
 When comp_percentile_rank is executed as above, the file `comp_eval_{self.species}.csv`, `comp_percentile_rank_{self.species}.csv` and `comp_scatterplot_dog.png` will be created or modified in the?`./comp_animal_disease/output/` folder.
