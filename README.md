@@ -33,13 +33,11 @@ To run comp_update_mrs,
 Run the command below:
 
   python ./comp_animal_disease/comp_update_mrs.py {path_exp}
-
   ### ex) python comp_update_mrs.py "/home/kbkim/comp_animal_disease/input/PDmirror_output_dog_1629.csv"
   ### ex) python comp_update_mrs.py "/home/kbkim/comp_animal_disease/input/PCmirror_output_cat_1520.csv"  
    
     
-
-
+    
 When comp_update_mrs is executed as above, the file?`db_abundance_{self.species}.xlsx`, `comp_mrs_db_{self.species}.xlsx`, `comp_percentile_rank_db_{self.species}.csv`?will be created or modified in the?`./comp_animal_disease/input/`?folder (where, {self.species} : dog or cat).
 And the file `mrs_hist_{self.species}g.png` will be created or modified in the?`./comp_animal_disease/output/`?folder (where, {self.species} : dog or cat).
 
