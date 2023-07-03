@@ -19,7 +19,7 @@ The list of required packages for `script` is shown in the `requirements.txt` fi
 ## How to use
 
 ### 1. Prepare Merged Proportion File
-Place the csv file of your Merged Proportion File in the `./comp_animal_disease/input/`?folder.
+Place the csv file of your Merged Proportion File in the `./comp_animal_disease/input/` folder.
 
 Caveats: 
 
@@ -38,15 +38,15 @@ Run the command below:
    
     
     
-When comp_update_mrs is executed as above, the file?`db_abundance_{self.species}.xlsx`, `comp_mrs_db_{self.species}.xlsx`, `comp_percentile_rank_db_{self.species}.csv`?will be created or modified in the?`./comp_animal_disease/input/`?folder (where, {self.species} : dog or cat).
-And the file `mrs_hist_{self.species}g.png` will be created or modified in the?`./comp_animal_disease/output/`?folder (where, {self.species} : dog or cat).
+When comp_update_mrs is executed as above, the file `db_abundance_{self.species}.xlsx`, `comp_mrs_db_{self.species}.xlsx`, `comp_percentile_rank_db_{self.species}.csv` will be created or modified in the `./comp_animal_disease/input/` folder (where, {self.species} : dog or cat).
+And the file `mrs_hist_{self.species}g.png` will be created or modified in the `./comp_animal_disease/output/` folder (where, {self.species} : dog or cat).
 
 
 # comp_percentile_rank : Calculate MRS, Dysbiosis, HealthyDistance and percentile rank of samples, Benefical & Harmful microbiome abuncdance.
 ## How to use
 
 ### 1. Prepare Input data
-Place the csv file of your proportion file in the `./comp_animal_disease/input/`?folder.
+Place the csv file of your proportion file in the `./comp_animal_disease/input/` folder.
 Caveats: 
 
 1. The first column of the Merged Proportion File is in the order of taxa, diversity, observed, and microbiome list.
