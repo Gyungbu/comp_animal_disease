@@ -1,4 +1,4 @@
-# comp_animal_disease
+# comp_animal_disease : Calculate the index and percentile ranks of pets.
 
 ![Python](https://img.shields.io/badge/Python-v3.9.0-blue.svg?style=flat&logo=python)&nbsp;
 ![Pandas](https://img.shields.io/badge/pandas-v2.0.1-blue.svg?style=flat&logo=pandas)&nbsp;
@@ -47,7 +47,7 @@ When comp_update_mrs is executed as above, the file `db_abundance_{self.species}
 And the file `mrs_hist_{self.species}g.png` will be created or modified in the `./comp_animal_disease/output/` folder (where, {self.species} : dog or cat).
 
 
-# comp_percentile_rank : Calculate MRS, Dysbiosis, HealthyDistance and percentile rank of samples, Benefical & Harmful microbiome abundance.
+# comp_percentile_rank : Calculate the index and percentile ranks of pets.
 ## How to use
 
 ### 1. Prepare Input data
