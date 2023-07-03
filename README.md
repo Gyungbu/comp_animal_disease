@@ -1,5 +1,10 @@
 # comp_animal_disease
 
+![Python](https://img.shields.io/badge/Python-v3.9.0-blue.svg?style=flat&logo=python)&nbsp;
+![Pandas](https://img.shields.io/badge/pandas-v2.0.1-blue.svg?style=flat&logo=pandas)&nbsp;
+![Numpy](https://img.shields.io/badge/NumPy-v1.24.3-blue.svg?style=flat&logo=numpy)&nbsp;
+![Scipy](https://img.shields.io/badge/SciPy-v1.10.1-blue.svg?style=flat&logo=scipy)&nbsp;
+![scikit-bio](https://img.shields.io/badge/exe-grey.svg?style=flat&logo=scikit-bio)&nbsp;
 
 ## Installation
 
@@ -7,12 +12,12 @@ You can install the comp_animal_disease with following command.
 	
 	git clone https://github.com/Gyungbu/comp_animal_disease.git
  
-The list of required packages for `script` is shown in the `requirements.txt` file. When you run the command below, the required packages will be downloaded. (version : `python 3.9.7`)
+The list of required packages for `script` is shown in the `requirements.txt` file. When you run the command below, the required packages will be downloaded. (version : `python 3.9.0`)
 	
 	conda create -n env_comp_animal_disease
 	conda activate env_comp_animal_disease
 	conda install pip  
-	conda install python=3.9.7
+	conda install python=3.9.0
 	pip install -r ./comp_animal_disease/requirements.txt 
 
 # comp_update_mrs : (Optional) Update Reference Data
@@ -42,7 +47,7 @@ When comp_update_mrs is executed as above, the file `db_abundance_{self.species}
 And the file `mrs_hist_{self.species}g.png` will be created or modified in the `./comp_animal_disease/output/` folder (where, {self.species} : dog or cat).
 
 
-# comp_percentile_rank : Calculate MRS, Dysbiosis, HealthyDistance and percentile rank of samples, Benefical & Harmful microbiome abuncdance.
+# comp_percentile_rank : Calculate MRS, Dysbiosis, HealthyDistance and percentile rank of samples, Benefical & Harmful microbiome abundance.
 ## How to use
 
 ### 1. Prepare Input data
