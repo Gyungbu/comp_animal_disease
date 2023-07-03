@@ -30,7 +30,7 @@ Caveats:
 ### 2. Run comp_update_mrs
 To run comp_update_mrs,
  
-    Run the command below:
+Run the command below:
 
 		python ./comp_animal_disease/comp_update_mrs.py {path_exp}
 
@@ -59,7 +59,7 @@ Caveats:
 ### 2. Run comp_percentile_rank
 To run comp_percentile_rank,
  
-    Run the command below:
+Run the command below:
 
 		python ./comp_animal_disease/comp_percentile_rank_forRPA.py.py 
     
