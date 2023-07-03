@@ -4,7 +4,7 @@
 ![Pandas](https://img.shields.io/badge/pandas-v2.0.1-blue.svg?style=flat&logo=pandas)&nbsp;
 ![Numpy](https://img.shields.io/badge/NumPy-v1.24.3-blue.svg?style=flat&logo=numpy)&nbsp;
 ![Scipy](https://img.shields.io/badge/SciPy-v1.10.1-blue.svg?style=flat&logo=scipy)&nbsp;
-![scikit-bio](https://img.shields.io/badge/exe-grey.svg?style=flat&logo=scikit-bio)&nbsp;
+![scikit-bio](https://img.shields.io/badge/scikit_bio-grey.svg?style=flat&logo=scikit-bio)&nbsp;
 
 ## Installation
 
