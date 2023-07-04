@@ -64,7 +64,7 @@ To run comp_percentile_rank,
  
 Run the command below:
 
-    python ./comp_animal_disease/comp_percentile_rank_forRPA.py.py 
+    python ./comp_animal_disease/comp_percentile_rank_forRPA.py
     
 
 When comp_percentile_rank is executed as above, the file `comp_eval_{self.species}.csv`, `comp_percentile_rank_{self.species}.csv` and `comp_scatterplot_dog.png` will be created or modified in the `./comp_animal_disease/output/` folder.
